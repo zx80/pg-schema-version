@@ -7,7 +7,6 @@ from .utils import openfiles, bytes_hash, log
 # TODO do not rely on search path?
 # TODO warn about explicit transactions
 # TODO warn about backslash commands
-# TODO self register and self check?
 # TODO drop option
 # TODO description can replace signature?
 
@@ -66,14 +65,16 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 BEGIN;
 CREATE TABLE PUBLIC.psv_app_status(
   id SERIAL PRIMARY KEY,
-  app TEXT NOT NULL DEFAULT :'psv_app',
+  app TEXT NOT NULL DEFAULT 'psv',
   version INTEGER NOT NULL DEFAULT 0,
   signature TEXT DEFAULT NULL,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE(app, version),
-  UNIQUE(signature)
+  UNIQUE(signature),
+  CHECK (version = 0 AND signature IS NULL OR version > 0 AND signature IS NOT NULL)
 );
 INSERT INTO PUBLIC.psv_app_status DEFAULT VALUES;
+INSERT INTO PUBLIC.psv_app_status(app) VALUES (:'psv_app');
 COMMIT;
 
   \endif
@@ -88,6 +89,18 @@ COMMIT;
   -- reference
   CREATE TEMPORARY VIEW PsvAppStatus
     AS SELECT * FROM PUBLIC.psv_app_status;
+\endif
+
+-- self check
+SELECT COUNT(*) <> 1 AS psv_not_v0
+  FROM PsvAppStatus
+  WHERE app = 'psv'
+  \gset
+
+\if :psv_not_v0
+  \echo # psv: unknown version
+  \! kill $PPID
+  \quit
 \endif
 
 -- check that the application is known
@@ -172,6 +185,7 @@ SCRIPT_FOOTER = r"""
   DROP TABLE PsvAppStatus;
 \else
 """ + APP_VERSION + r"""
+  DROP VIEW PsvAppStatus;
 \endif
 """
 
