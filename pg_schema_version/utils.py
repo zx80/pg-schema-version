@@ -4,9 +4,9 @@ import hashlib
 
 log = logging.getLogger("psv")
 
-def bytes_hash(algo: str, data: str):
+def bytes_hash(algo: str, data: str, encoding: str = "UTF-8"):
     h = hashlib.new(algo)
-    h.update(data.encode('UTF-8'))
+    h.update(data.encode(encoding))
     return h.hexdigest()
  
 def openfiles(args: list[str] = []):
