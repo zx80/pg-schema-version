@@ -23,7 +23,7 @@ with safety first in mind.
 
 2. Generate a `psql`-script from these:
    ```shell
-   psv create_*.sql > acme.sql
+   pg-schema-version create_*.sql > acme.sql
    ```
 
 3. Execute the script against a database to bring its schema up to date.

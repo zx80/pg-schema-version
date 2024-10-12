@@ -20,7 +20,7 @@ dependencies = [ ]
 dev = ["pytest", "pyright", "ruff"]
 
 [project.scripts]
-psv = "pg_schema_version:psv"
+pg-schema-version = "pg_schema_version:psv"
 
 [project.urls]
 repository = "https://github.com/zx80/pg-schema-version"
