@@ -149,14 +149,14 @@ SELECT COUNT(*) > 0 AS psv_signature_used
 
 \if :psv_version_needed
   \if :psv_signature_used
-    \echo # ERROR :psv_app version :psv_version signature already used
+    \echo # ERROR :psv_app :psv_version signature already used
     \! kill $PPID
     \quit
   \endif
   \if :psv_dry_run
-    \echo # psv will apply :psv_app version :psv_version
+    \echo # psv will apply :psv_app :psv_version
   \else
-    \echo # applying :psv_app version :psv_version
+    \echo # applying :psv_app :psv_version
 BEGIN;
   INSERT INTO PsvAppStatus(app, version, signature)
     VALUES (:'psv_app', :psv_version, :'psv_signature');
@@ -167,14 +167,14 @@ COMMIT;
   \endif
 \else
   \if :psv_version_inconsistent
-    \echo # ERROR :psv_app version :psv_version inconsistent signature
+    \echo # ERROR :psv_app :psv_version inconsistent signature
     \! kill $PPID
     \quit
   \endif
   \if :psv_dry_run
-    \echo # psv will skip :psv_app version :psv_version
+    \echo # psv will skip :psv_app :psv_version
   \else
-    \echo # skipping :psv_app version :psv_version
+    \echo # skipping :psv_app :psv_version
   \endif
 \endif
 """
