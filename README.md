@@ -12,13 +12,13 @@ with safety first in mind.
 
    - initial schema creation `create_000.sql`
      ```sql
-     CREATE TABLE Acme(aid SERIAL PRIMARY KEY, data TEXT UNIQUE NOT NULL);
+     CREATE TABLE AcmeData(aid SERIAL PRIMARY KEY, data TEXT UNIQUE NOT NULL);
      ```
    - first schema upgrade `create_001.sql`
      ```sql
      CREATE TABLE AcmeType(atid SERIAL PRIMARY KEY, atype TEXT UNIQUE NOT NULL);
      INSERT INTO AcmeType(atype) VALUES ('great'), ('super'), ('wow');
-     ALTER TABLE Acme ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
+     ALTER TABLE AcmeData ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
      ```
 
 2. Generate a `psql`-script from these:
@@ -35,8 +35,8 @@ with safety first in mind.
    psql -v psv_wet_run=1 < acme.sql
    # psv wet run for app acme
    # creating psv infrastructure
-   # creating version 1
-   # creating version 2
+   # creating acme version 1
+   # creating acme version 2
    # acme version: 2
    ```
 
