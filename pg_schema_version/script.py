@@ -8,7 +8,8 @@ from .utils import openfiles, bytes_hash, log
 # TODO warn about explicit transactions
 # TODO warn about backslash commands
 # TODO drop option
-# TODO description can replace signature?
+# TODO description can replace signature? added?
+# TODO out option
 
 APP_VERSION = r"""
 --- show app version
