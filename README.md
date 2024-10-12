@@ -28,3 +28,11 @@ plain SQL scripts and no configuration to provide limited but useful features.
    ```shell
    psql acme < out.sql
    ```
+
+## License
+
+This code is [Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
+
+All software has bug, this is software, hence…
+Beware that you may lose your hairs or your friends because of it.
+If you like it, feel free to send a postcard to the author.
