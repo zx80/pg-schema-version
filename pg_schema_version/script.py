@@ -7,6 +7,7 @@ from .utils import openfiles, bytes_hash, log
 # TODO do not rely on search path?
 # TODO warn about explicit transactions
 # TODO warn about backslash commands
+# TODO encoding option
 
 SCRIPT_HEADER = r"""--
 -- DO NOT EDIT
