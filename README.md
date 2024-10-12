@@ -3,30 +3,41 @@
 There already exists tools to manage database schema versions, such as
 [sqitch](https://sqitch.org/), or [alembic](https://alembic.sqlalchemy.org/).
 In contrast, pg-schema-version (`psv`) emphasizes a _simple_ approach based on
-plain SQL scripts and no configuration to provide limited but useful features.
+plain SQL scripts and no configuration to provide limited but useful features
+with safety first in mind.
 
 ## Usage
 
 1. Write a sequence of incremental postgres SQL data definition scripts
 
-   - initial creation `create_000.sql`
+   - initial schema creation `create_000.sql`
      ```sql
      CREATE TABLE Acme(aid SERIAL PRIMARY KEY, data TEXT UNIQUE NOT NULL);
      ```
-   - first update `create_001.sql`
+   - first schema upgrade `create_001.sql`
      ```sql
      CREATE TABLE AcmeType(atid SERIAL PRIMARY KEY, atype TEXT UNIQUE NOT NULL);
-     ALTER TABLE Acme ADD COLUMN atid INT8 NOT NULL REFERENCES AcmeType;
+     INSERT INTO AcmeType(atype) VALUES ('great'), ('super'), ('wow');
+     ALTER TABLE Acme ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
      ```
 
 2. Generate a `psql`-script from these:
    ```shell
-   psv create_*.sql > out.sql
+   psv create_*.sql > acme.sql
    ```
 
 3. Execute the script against a database to bring its schema up to date.
    ```shell
-   psql acme < out.sql
+   psql acme < acme.sql
+   # psv dry run for app acme, enable with -v psv_wet_run=1
+   # script will create infratructure and execute all commands
+
+   psql -v psv_wet_run=1 < acme.sql
+   # psv wet run for app acme
+   # creating psv infrastructure
+   # creating version 1
+   # creating version 2
+   # acme version: 2
    ```
 
 ## License

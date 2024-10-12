@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pg_schema_version"]
+
+[project]
+name = "pg-schema-version"
+authors = [{ name = "Fabien Coelho" }]
+description = "Lightweight Postgres Schema Versioning"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "CC0 1.0" }
+classifiers = ["Topic :: Software Development"]
+version = "1.0"
+dependencies = [ ]
+
+[project.optional-dependencies]
+dev = ["pytest", "pyright", "ruff"]
+
+[project.scripts]
+psv = "pg_schema_version:psv"
+
+[project.urls]
+repository = "https://github.com/zx80/pg-schema-version"
+documentation = "https://zx80.github.io/pg-schema-version/"
