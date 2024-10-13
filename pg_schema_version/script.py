@@ -15,12 +15,17 @@ from .utils import openfiles, bytes_hash, log
 # TODO clarify dry/wet run interface
 
 APP_VERSION = r"""
---- show target app version
+--- show target app version if available
 SELECT MAX(version) AS psv_version
   FROM PsvAppStatus
   WHERE app = :'psv_app'
   \gset
-\echo # :psv_app version: :psv_version
+\if :{{?psv_version}}
+  \echo # :psv_app version: :psv_version
+  \unset psv_version
+\else
+  \echo # :psv_app is not registered
+\endif
 """
 
 SCRIPT_HEADER = r"""--
@@ -41,12 +46,13 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
   \warn # ERROR psv requires postgres version 10 or above
   \quit
 \endif
+\unset psv_pg_ko
 
 -- command to execute
 \if :{{?psv_cmd}}
   \echo # psv command is :psv_cmd
 \else
-  -- default command is to run the script
+  -- default command is to run the script (no init nor register)
   \set psv_cmd run
   \echo # psv command set to :psv_cmd, set with -v psv_cmd=…
 \endif
@@ -75,15 +81,16 @@ SELECT
   \warn # ERROR psv unexpected command :psv_cmd, expecting: init register run create status remove
   \quit
 \endif
+\unset psv_bad_cmd
 
--- set psv_dry_run
-\if :{{?psv_wet_run}}
+-- set psv_dry
+\if :{{?psv_wet}}
   \echo # psv wet :psv_cmd for :psv_app
-  \unset psv_wet_run
-  \set psv_dry_run 0
+  \set psv_dry 0
+  \unset psv_wet
 \else
-  \echo # psv dry :psv_cmd for :psv_app, enable with -v psv_wet_run=1
-  \set psv_dry_run 1
+  \echo # psv dry :psv_cmd for :psv_app, enable with -v psv_wet=1
+  \set psv_dry 1
 \endif
 
 --
@@ -96,8 +103,24 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 
 \if :psv_do_init
   \if :psv_no_infra
-    \if :psv_dry_run
-      \echo # psv will create infra
+    \if :psv_dry
+      -- output a precise message before quitting
+      \if :psv_do_steps
+         \if :psv_do_register
+           \echo # psv will create infra, register :psv_app and execute all steps
+         \else
+           -- UNREACHABLE
+           \warn # INTERNAL ERROR should not init and run without registering
+           \quit
+         \endif
+      \else
+         \if :psv_do_register
+           \echo # psv will create infra and register :psv_app
+         \else
+           \echo # psv will create infra
+         \endif
+      \endif
+      -- always quit without infra anyway
       \quit
     \else
       -- wet run, do the job!
@@ -125,7 +148,7 @@ COMMIT;
     \endif
   \else
     -- infra already exists
-    \if :psv_dry_run
+    \if :psv_dry
       \echo # psv will skip infra initialization
     \else
       \echo # skipping psv infra initialization
@@ -134,7 +157,7 @@ COMMIT;
 \else
   -- do not initialize
   \if :psv_no_infra
-    \if :psv_dry_run
+    \if :psv_dry
       \echo # psv will skip needed infra initialization…
     \else
       \warn # skipping needed psv infra initialization…
@@ -152,7 +175,7 @@ COMMIT;
   \if :psv_no_infra
     \if :psv_do_init
       -- ok, will have been initialized
-      \if :psv_dry_run
+      \if :psv_dry
         \echo # psv will show all application status
         -- nothing else to do
         \quit
@@ -180,7 +203,7 @@ COMMIT;
 -- this is placed after STATUS so that the current status is shown
 --
 \if :psv_do_remove
-  \if :psv_dry_run
+  \if :psv_dry
     \echo # psv will drop its infra if it exists
   \else
     DROP TABLE IF EXISTS psv_app_status;
@@ -192,7 +215,7 @@ COMMIT;
 --
 -- setup dry run, changes are operated on a temporary copy
 --
-\if :psv_dry_run
+\if :psv_dry
   -- copy
   CREATE TEMPORARY TABLE PsvAppStatus
     AS SELECT * FROM PUBLIC.psv_app_status;
@@ -221,7 +244,7 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 
 \if :psv_app_ko
   \if :psv_do_register
-    \if :psv_dry_run
+    \if :psv_dry
       \echo # psv will register :psv_app
     \else
       \echo # registering :psv_app
@@ -230,14 +253,17 @@ SELECT COUNT(*) = 0 AS psv_app_ko
     INSERT INTO PsvAppStatus(app) VALUES (:'psv_app');
   \else
     -- not registered and will not register…
-    \warn # ERROR :psv_app registration needed
-    \quit
+    \if :psv_do_steps
+      \warn # ERROR :psv_app registration needed
+      \quit
+    -- else it will not be needed
+    \endif
   \endif
 \endif
 """ + APP_VERSION + r"""
 -- consider each step
 \if :psv_do_steps
-  \if :psv_dry_run
+  \if :psv_dry
     \echo # psv will consider applying all steps
   \else
     \echo # considering all steps
@@ -279,7 +305,7 @@ SELECT COUNT(*) > 0 AS psv_signature_used
     \warn # ERROR :psv_app :psv_version script already applied
     \quit
   \endif
-  \if :psv_dry_run
+  \if :psv_dry
     \echo # psv will apply :psv_app :psv_version
     -- upgrade application new version for dry run
     INSERT INTO PsvAppStatus(app, version, signature)
@@ -304,28 +330,37 @@ COMMIT;
     \warn # ERROR :psv_app :psv_version inconsistent signature
     \quit
   \endif
-  \if :psv_dry_run
+  \if :psv_dry
     \echo # psv will skip :psv_app :psv_version
   \else
     \echo # skipping :psv_app :psv_version
   \endif
 \endif
+
+\unset psv_version
+\unset psv_signature
 """
 
 SCRIPT_FOOTER = r"""
 \else
   -- do not apply steps
-  \echo # psv will skip all schema creation steps for command :psv_cmd
+  \if :psv_dry
+    \echo # psv will skip all schema creation steps for command :psv_cmd
+  \else
+    \echo # skip all schema creation steps for command :psv_cmd
+  \endif
 \endif
 
 -- final output
 """ + APP_VERSION + r"""
-\if :psv_dry_run
+\if :psv_dry
   \echo # psv dry run done
   DROP TABLE PsvAppStatus;
 \else
   DROP VIEW PsvAppStatus;
 \endif
+
+-- end of {app} psv script
 """
 
 def gen_psql_script(args):
@@ -354,7 +389,7 @@ def gen_psql_script(args):
         output(script)
         output(FILE_FOOTER)
 
-    output(SCRIPT_FOOTER)
+    output(SCRIPT_FOOTER.format(app=args.app))
 
     return 0
 

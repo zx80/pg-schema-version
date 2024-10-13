@@ -33,10 +33,10 @@ features with safety in mind.
 
 3. Execute the script against a database to bring its schema up to date.
    ```shell
-   # first time MUST use create
+   # first time MUST use command create
    psql -v psv_cmd=create acme < acme.sql
-   # psv command set to run, set with -v psv_cmd=…
-   # psv dry run for acme, enable with -v psv_wet_run=1
+   # psv command set to create
+   # psv dry run for acme, enable with -v psv_wet=1
    # script will create infra, register acme and execute all steps
 
    psql -v psv_cmd=create -v psv_wet_run=1 < acme.sql
