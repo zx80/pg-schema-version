@@ -281,13 +281,17 @@ SELECT COUNT(*) > 0 AS psv_signature_used
   \endif
   \if :psv_dry_run
     \echo # psv will apply :psv_app :psv_version
+    -- upgrade application new version for dry run
+    INSERT INTO PsvAppStatus(app, version, signature)
+      VALUES (:'psv_app', :psv_version, :'psv_signature');
   \else
     \echo # applying :psv_app :psv_version
+
 BEGIN;
 """
 
 FILE_FOOTER = r"""
-  -- upgrade application new version, possibly for dry run
+  -- upgrade application new version
   INSERT INTO PsvAppStatus(app, version, signature)
     VALUES (:'psv_app', :psv_version, :'psv_signature');
 
