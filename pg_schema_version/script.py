@@ -173,6 +173,13 @@ BEGIN;
 
 FILE_FOOTER = r"""
 COMMIT;
+    -- stop on any errors
+    SELECT :LAST_ERROR_SQLSTATE <> '00000' AS psv_script_error \gset
+    \if :psv_script_error
+      \echo # ERROR: aborting on :psv_name :psv_version
+      \! kill $PPID
+      \quit
+    \endif
   \endif
 \else
   \if :psv_version_inconsistent
