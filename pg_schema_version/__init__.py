@@ -1,1 +1,1 @@
-from .script import psv
+from .script import psv as psv

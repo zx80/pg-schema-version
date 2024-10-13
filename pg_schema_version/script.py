@@ -374,7 +374,8 @@ SCRIPT_FOOTER = APP_VERSION + r"""
 def gen_psql_script(args):
     """Generate an idempotent psql script."""
 
-    output = lambda s: print(s, file=args.out, end="")
+    def output(s: str):
+        print(s, file=args.out, end="")
 
     output(SCRIPT_HEADER.format(app=args.app, schema=args.schema))
 
