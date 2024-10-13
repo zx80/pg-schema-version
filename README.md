@@ -1,11 +1,13 @@
 # Lightweight Postgres Schema Versioning
 
-There already exists tools to manage database schema versions, such as
+There already exists _many_ tools to manage database schema versions, such as
 [sqitch](https://sqitch.org/), or [alembic](https://alembic.sqlalchemy.org/).
-Please consider them to check whether they fit your needs before considering psv.
-In contrast, pg-schema-version (`psv`) emphasizes a _simple_ approach based on
-a single plain SQL scripts and no configuration to provide limited but useful
-features with safety in mind.
+Please consider them first to check whether they fit your needs before
+considering this one.
+In contrast to these tools, `pg-schema-version` emphasizes a _simple_ approach
+based on a single plain SQL scripts and no configuration, to provide limited but
+useful features with safety in mind.
+The status is maintained in one table.
 
 ## Usage
 
@@ -36,33 +38,35 @@ features with safety in mind.
    # first time MUST use command create
    psql -v psv_cmd=create acme < acme.sql
    # psv command set to create
-   # psv dry run for acme, enable with -v psv_wet=1
-   # script will create infra, register acme and execute all steps
+   # psv dry create for acme, enable with -v psv_wet=1
+   # psv script will create infra, register acme and execute all steps
 
    psql -v psv_cmd=create -v psv_wet=1 < acme.sql
    # psv wet run for acme
-   # creating psv infra
-   # registering app acme
-   # applying acme 1
-   # applying acme 2
-   # applying acme 3
-   # acme version: 3
+   # psv creating psv infra
+   # psv registering app acme
+   # psv applying acme 1
+   # psv applying acme 2
+   # psv applying acme 3
+   # psv acme version: 3
+   # psv wet run for acme done
 
    # on rerun, do nothing
    psql -v psv_wet=1 < acme.sql
    # psv wet run for app acme
-   # applying acme 1
-   # applying acme 2
-   # applying acme 3
-   # acme version: 3
+   # psv applying acme 1
+   # psv applying acme 2
+   # psv applying acme 3
+   # psv acme version: 3
+   # psv wet run for acme done
    ```
 
 ## Features
 
-The python script generates a reasonably safe re-entrant idempotent psql script
-driven by variables `psv_cmd` and `psv_wet`:
+The python script generates a reasonably safe re-entrant idempotent SQL script
+driven by `psql`-variables `psv_cmd` and `psv_wet`:
 
-- if `psv_wet` is not set, the script performs a dry run which does **not**
+- if `psv_wet` is not set, the script only performs a dry run which does **not**
   apply any schema changes.
 - available `psv_cmd` commands are:
   - `init` just initialize an empty psv infrastructure if needed.
