@@ -6,7 +6,6 @@ import argparse
 from .utils import openfiles, bytes_hash, log
 
 # NOTE this could be a postgres extension?
-# TODO do not rely on search path?
 # TODO warn about explicit transactions
 # TODO warn about backslash commands
 # TODO description can replace signature? added?
@@ -98,7 +97,8 @@ SELECT
 --
 SELECT COUNT(*) = 0 AS psv_no_infra
   FROM pg_catalog.pg_tables
-  WHERE tablename = 'psv_app_status'
+  WHERE schemaname = '{schema}'
+    AND tablename = 'psv_app_status'
   \gset
 
 \if :psv_do_init
@@ -129,7 +129,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 BEGIN;
 
 -- create psv application status table
-CREATE TABLE PUBLIC.psv_app_status(
+CREATE TABLE {schema}.psv_app_status(
   id SERIAL PRIMARY KEY,
   app TEXT NOT NULL DEFAULT 'psv',
   version INTEGER NOT NULL DEFAULT 0,
@@ -218,11 +218,11 @@ COMMIT;
 \if :psv_dry
   -- copy
   CREATE TEMPORARY TABLE PsvAppStatus
-    AS SELECT * FROM PUBLIC.psv_app_status;
+    AS SELECT * FROM {schema}.psv_app_status;
 \else
   -- reference
   CREATE TEMPORARY VIEW PsvAppStatus
-    AS SELECT * FROM PUBLIC.psv_app_status;
+    AS SELECT * FROM {schema}.psv_app_status;
 \endif
 
 -- self check for possible future upgrades
@@ -368,7 +368,7 @@ def gen_psql_script(args):
 
     output = lambda s: print(s, file=args.out, end="")
 
-    output(SCRIPT_HEADER.format(app=args.app))
+    output(SCRIPT_HEADER.format(app=args.app, schema=args.schema))
 
     version = 0
     for fn, fh in openfiles(args.sql):
@@ -389,7 +389,7 @@ def gen_psql_script(args):
         output(script)
         output(FILE_FOOTER)
 
-    output(SCRIPT_FOOTER.format(app=args.app))
+    output(SCRIPT_FOOTER.format(app=args.app, schema=args.schema))
 
     return 0
 
@@ -400,6 +400,7 @@ def psv():
     ap = argparse.ArgumentParser()
     ap.add_argument("-d", "--debug", help="debug mode", action="store_true")
     ap.add_argument("-a", "--app", help="application name", type=str, default="app")
+    ap.add_argument("-s", "--schema", help="schema for psv infra", type=str, default="public")
     ap.add_argument("-e", "--encoding", help="sql file encoding", type=str, default="UTF-8")
     ap.add_argument("-H", "--hash", help="hashlib algorithm for step signature", type=str, default="sha3_256")
     ap.add_argument("-o", "--out", help="output script, default on stdout", type=str, default=sys.stdout)
