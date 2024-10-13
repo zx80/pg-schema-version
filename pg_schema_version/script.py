@@ -355,7 +355,7 @@ SCRIPT_FOOTER = APP_VERSION + r"""
   \if :psv_dry
     \echo # psv will skip all schema creation steps for command :psv_cmd
   \else
-    \echo # psv skip all schema creation steps for command :psv_cmd
+    \echo # psv skipping all schema creation steps for command :psv_cmd
   \endif
 \endif
 
