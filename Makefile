@@ -4,6 +4,10 @@ SHELL   = /bin/bash
 PYTHON  = python
 PACKAGE = pg_schema_version
 
+#
+# cleanup
+#
+
 .PHONY: clean
 clean:
 	$(RM) *~
@@ -13,6 +17,27 @@ clean:
 clean.dev: clean
 	$(RM) -r venv $(PACKAGE).egg-info
 
+#
+# environment
+#
+
 venv:
 	$(PYTHON) -m venv venv
 	./venv/bin/pip install -e .[dev]
+
+#
+# checks
+#
+
+.PHONY: check.ruff
+check.ruff: venv
+	source venv/bin/activate
+	ruff check $(PACKAGE)
+
+.PHONY: check.pyright
+check.pyright: venv
+	source venv/bin/activate
+	pyright $(PACKAGE)
+
+.PHONY: check
+check: check.ruff check.pyright
