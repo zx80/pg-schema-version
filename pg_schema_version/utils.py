@@ -4,10 +4,10 @@ import hashlib
 
 log = logging.getLogger("psv")
 
-def bytes_hash(algo: str, data: str, encoding: str = "UTF-8") -> str:
-    """Compute signature of data with a hash algorithm."""
+def bytes_hash(algo: str, data: bytes) -> str:
+    """Compute signature of data with a hashlib algorithm."""
     h = hashlib.new(algo)
-    h.update(data.encode(encoding))
+    h.update(data)
     return h.hexdigest()
  
 def openfiles(args: list[str] = []):

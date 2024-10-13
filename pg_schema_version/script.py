@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import logging
 import argparse
 from .utils import openfiles, bytes_hash, log
@@ -31,7 +32,7 @@ SCRIPT_HEADER = r"""--
 -- See: https://github.com/zx80/pg-schema-version
 --
 
--- any error will stop the script
+-- any error will stop the script immediately
 \set ON_ERROR_STOP 1
 
 -- check postgres server version
@@ -66,7 +67,7 @@ SELECT
   -- whether to remove the infrastructure
   :'psv_cmd' IN ('remove')                    AS psv_do_remove,
   -- check command validity
-  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'remove', 'status') AS psv_bad_cmd
+  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'remove') AS psv_bad_cmd
   \gset
 
 -- check that command is valid
@@ -96,7 +97,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 \if :psv_do_init
   \if :psv_no_infra
     \if :psv_dry_run
-      \echo # psv will create infra, register :psv_app and execute all steps
+      \echo # psv will create infra
       \quit
     \else
       -- wet run, do the job!
@@ -334,7 +335,17 @@ def gen_psql_script(args):
     for fn, fh in openfiles(args.sql):
         version += 1
         script = fh.read()
-        signature = bytes_hash(args.hash, script, args.encoding)
+        # sanity checks
+        if re.search(r"^\s*\\", script, re.M):
+            log.error(f"script {fn} contains a backslash command")
+            return 1
+        # FIXME skip begin/end which interact with plpgsql…
+        if re.search(r"^\s*(commit|rollback|savepoint)\b", script, re.I|re.M):
+            log.error(f"script {fn} contains a transaction command")
+            return 2
+        data = script.encode(args.encoding)
+        signature = bytes_hash(args.hash, data)
+        # output psql code
         output(FILE_HEADER.format(file=fn, version=version, signature=signature))
         output(script)
         output(FILE_FOOTER)
@@ -361,7 +372,7 @@ def psv():
 
     if isinstance(args.out, str):
         if os.path.exists(args.out):
-            print(f"psv will not overwrite output file {args.out}, remove it first", file=sys.stderr)
+            log.error(f"psv will not overwrite output file {args.out}, remove it first")
             return 2
         args.out = open(args.out, "w")
 

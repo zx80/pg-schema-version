@@ -5,7 +5,7 @@ There already exists tools to manage database schema versions, such as
 Please consider them to check whether they fit your needs before considering psv.
 In contrast, pg-schema-version (`psv`) emphasizes a _simple_ approach based on
 a single plain SQL scripts and no configuration to provide limited but useful
-features with safety first in mind.
+features with safety in mind.
 
 ## Usage
 
@@ -26,7 +26,7 @@ features with safety first in mind.
      INSERT INTO AcmeType(atype) VALUES ('wow'), ('incredible');
      ```
 
-2. Generate a `psql`-script from these:
+2. Generate a `psql`-script from these for the target application:
    ```shell
    pg-schema-version -a acme create_*.sql > acme.sql
    ```
@@ -57,6 +57,24 @@ features with safety first in mind.
    # applying acme 3
    # acme version: 3
    ```
+
+## Features
+
+The python script generates a reasonably safe re-entrant idempotent psql script
+driven by variables `psv_cmd` and `psv_wet_run`:
+
+- if `psv_wet_run` is not set, the script performs a dry run which does **not**
+  apply any schema changes.
+- available `psv_cmd` commands are:
+  - `init` just initialize an empty psv infrastructure if needed.
+  - `register` register new application in the psv infrastructure.
+  - `run` run required steps on an already registered application.
+  - `create` do all of the above.
+  - `remove` drop psv infrastructure.
+
+## Caveats
+
+There is no magic involved, you can still shot yourself in the foot.
 
 ## License
 
