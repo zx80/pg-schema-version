@@ -18,10 +18,10 @@ SELECT MAX(version) AS psv_version
   WHERE app = :'psv_app'
   \gset
 \if :{{?psv_version}}
-  \echo # :psv_app version: :psv_version
+  \echo # psv :psv_app version: :psv_version
   \unset psv_version
 \else
-  \echo # :psv_app is not registered
+  \echo # psv :psv_app is not registered
 \endif
 """
 
@@ -122,7 +122,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
       \quit
     \else
       -- wet run, do the job!
-      \echo # creating psv infra
+      \echo # psv creating infra
 
 BEGIN;
 
@@ -149,7 +149,7 @@ COMMIT;
     \if :psv_dry
       \echo # psv will skip infra initialization
     \else
-      \echo # skipping psv infra initialization
+      \echo # psv skipping psv infra initialization
     \endif
   \endif
 \else
@@ -158,7 +158,7 @@ COMMIT;
     \if :psv_dry
       \echo # psv will skip needed infra initialization…
     \else
-      \warn # skipping needed psv infra initialization…
+      \warn # psv skipping needed psv infra initialization…
     \endif
   -- else there is an infra and we do not to init
   \endif
@@ -246,7 +246,7 @@ SELECT COUNT(*) = 0 AS psv_app_ko
     \if :psv_dry
       \echo # psv will register :psv_app
     \else
-      \echo # registering :psv_app
+      \echo # psv registering :psv_app
     \endif
     -- actually register, possibly on the copy for the dry run
     INSERT INTO PsvAppStatus(app) VALUES (:'psv_app');
@@ -261,19 +261,22 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 \else
   \if :psv_do_register
     \if :psv_dry
-      \echo # psv will skip registering :psv_app
+      \echo # psv will skip :psv_app registration
+    \else
+      \echo # psv skipping :psv_app registration
     \endif
   \endif
 \endif
-""" + APP_VERSION + r"""
+
 -- consider each step
 \if :psv_do_steps
   \if :psv_dry
     \echo # psv will consider applying all steps
   \else
-    \echo # considering all steps
+    \echo # psv considering all steps
   \endif
-"""
+
+""" + APP_VERSION
 
 FILE_HEADER = r"""
 --
@@ -338,7 +341,7 @@ COMMIT;
   \if :psv_dry
     \echo # psv will skip :psv_app :psv_version
   \else
-    \echo # skipping :psv_app :psv_version
+    \echo # psv skipping :psv_app :psv_version
   \endif
 \endif
 
@@ -346,23 +349,23 @@ COMMIT;
 \unset psv_signature
 """
 
-SCRIPT_FOOTER = r"""
+SCRIPT_FOOTER = APP_VERSION + r"""
 \else
   -- do not apply steps
   \if :psv_dry
     \echo # psv will skip all schema creation steps for command :psv_cmd
   \else
-    \echo # skip all schema creation steps for command :psv_cmd
+    \echo # psv skip all schema creation steps for command :psv_cmd
   \endif
 \endif
 
 -- final output
-""" + APP_VERSION + r"""
 \if :psv_dry
-  \echo # psv dry :psv_cmd done
   DROP TABLE PsvAppStatus;
+  \echo # psv dry :psv_cmd for :psv_app done
 \else
   DROP VIEW PsvAppStatus;
+  \echo # psv wet :psv_cmd for :psv_app done
 \endif
 
 -- end of {app} psv script
