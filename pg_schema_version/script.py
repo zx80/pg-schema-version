@@ -156,9 +156,9 @@ COMMIT;
   -- do not initialize
   \if :psv_no_infra
     \if :psv_dry
-      \echo # psv will skip needed infra initialization…
+      \echo # psv will skip needed infra initialization… consider commands init or create
     \else
-      \warn # psv skipping needed psv infra initialization…
+      \warn # psv skipping needed psv infra initialization… consider commands init or create
     \endif
   -- else there is an infra and we do not to init
   \endif
@@ -182,7 +182,7 @@ COMMIT;
       \endif
     \else
       -- no infra and not initialized
-      \warn # ERROR cannot show status without psv infra
+      \warn # ERROR cannot show status without psv infra, consider commands init or create
       \quit
     \endif
   \endif
