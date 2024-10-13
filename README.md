@@ -7,7 +7,8 @@ considering this one.
 In contrast to these tools, `pg-schema-version` emphasizes a _simple_ approach
 based on a single plain SQL scripts and no configuration, to provide limited but
 useful features with safety in mind.
-The status is maintained in one table.
+The application schema status is maintained in one table to detect reruns.
+Several application can share the same setup.
 
 ## Usage
 
