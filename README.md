@@ -39,9 +39,9 @@ features with safety in mind.
    # psv dry run for acme, enable with -v psv_wet=1
    # script will create infra, register acme and execute all steps
 
-   psql -v psv_cmd=create -v psv_wet_run=1 < acme.sql
+   psql -v psv_cmd=create -v psv_wet=1 < acme.sql
    # psv wet run for acme
-   # creating psv infrastructure
+   # creating psv infra
    # registering app acme
    # applying acme 1
    # applying acme 2
@@ -49,9 +49,8 @@ features with safety in mind.
    # acme version: 3
 
    # on rerun, do nothing
-   psql -v psv_wet_run=1 < acme.sql
+   psql -v psv_wet=1 < acme.sql
    # psv wet run for app acme
-   # skipping psv infrastructure
    # applying acme 1
    # applying acme 2
    # applying acme 3
@@ -61,20 +60,28 @@ features with safety in mind.
 ## Features
 
 The python script generates a reasonably safe re-entrant idempotent psql script
-driven by variables `psv_cmd` and `psv_wet_run`:
+driven by variables `psv_cmd` and `psv_wet`:
 
-- if `psv_wet_run` is not set, the script performs a dry run which does **not**
+- if `psv_wet` is not set, the script performs a dry run which does **not**
   apply any schema changes.
 - available `psv_cmd` commands are:
   - `init` just initialize an empty psv infrastructure if needed.
-  - `register` register new application in the psv infrastructure.
+  - `register` register new application in the psv infrastructure if needed.
   - `run` run required steps on an already registered application.
   - `create` do all of the above.
   - `remove` drop psv infrastructure.
 
 ## Caveats
 
-There is no magic involved, you can still shot yourself in the foot.
+There is no magic involved, you can still shot yourself in the foot, although
+with an effort.
+
+To be safe, SQL schema creation scripts must **NOT**:
+- include backslash commands which may interfere with the script owns.
+- include SQL transaction commands.
+
+Imperfect checks are performed to detect the above issues.
+They can be circumvented with option `--trust-scripts`.
 
 ## License
 

@@ -6,12 +6,10 @@ import argparse
 from .utils import openfiles, bytes_hash, log
 
 # NOTE this could be a postgres extension?
-# TODO warn about explicit transactions
-# TODO warn about backslash commands
+# FIXME skip begin/end which interact with plpgsql…
 # TODO description can replace signature? added?
 # TODO verbose mode with log.info
 # TODO psv_cmd=help
-# TODO clarify dry/wet run interface
 
 APP_VERSION = r"""
 --- show target app version if available
@@ -162,6 +160,7 @@ COMMIT;
     \else
       \warn # skipping needed psv infra initialization…
     \endif
+  -- else there is an infra and we do not to init
   \endif
 \endif
 
@@ -259,6 +258,12 @@ SELECT COUNT(*) = 0 AS psv_app_ko
     -- else it will not be needed
     \endif
   \endif
+\else
+  \if :psv_do_register
+    \if :psv_dry
+      \echo # psv will skip registering :psv_app
+    \endif
+  \endif
 \endif
 """ + APP_VERSION + r"""
 -- consider each step
@@ -322,8 +327,8 @@ FILE_FOOTER = r"""
     VALUES (:'psv_app', :psv_version, :'psv_signature');
 
 COMMIT;
-  \endif
 
+  \endif
 \else
   -- step not needed
   \if :psv_version_inconsistent
@@ -354,7 +359,7 @@ SCRIPT_FOOTER = r"""
 -- final output
 """ + APP_VERSION + r"""
 \if :psv_dry
-  \echo # psv dry run done
+  \echo # psv dry :psv_cmd done
   DROP TABLE PsvAppStatus;
 \else
   DROP VIEW PsvAppStatus;
@@ -376,12 +381,17 @@ def gen_psql_script(args):
         script = fh.read()
         # sanity checks
         if re.search(r"^\s*\\", script, re.M):
-            log.error(f"script {fn} contains a backslash command")
-            return 1
-        # FIXME skip begin/end which interact with plpgsql…
+            if args.trust_scripts:
+                log.warning(f"script {fn} seems to contain a backslash command")
+            else:
+                log.error(f"script {fn} contains a backslash command")
+                return 1
         if re.search(r"^\s*(commit|rollback|savepoint)\b", script, re.I|re.M):
-            log.error(f"script {fn} contains a transaction command")
-            return 2
+            if args.trust_scripts:
+                log.warning(f"script {fn} seems to contain a transaction command")
+            else:
+                log.error(f"script {fn} contains a transaction command")
+                return 2
         data = script.encode(args.encoding)
         signature = bytes_hash(args.hash, data)
         # output psql code
@@ -404,6 +414,7 @@ def psv():
     ap.add_argument("-e", "--encoding", help="sql file encoding", type=str, default="UTF-8")
     ap.add_argument("-H", "--hash", help="hashlib algorithm for step signature", type=str, default="sha3_256")
     ap.add_argument("-o", "--out", help="output script, default on stdout", type=str, default=sys.stdout)
+    ap.add_argument("-T", "--trust-scripts", help="blindly trust provided scripts", action="store_true")
     ap.add_argument("sql", help="sql data definition files", nargs="*")
     args = ap.parse_args()
 
