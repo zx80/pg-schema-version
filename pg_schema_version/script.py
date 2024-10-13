@@ -410,15 +410,26 @@ def psv():
 
     logging.basicConfig()
 
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-d", "--debug", help="debug mode", action="store_true")
-    ap.add_argument("-a", "--app", help="application name", type=str, default="app")
-    ap.add_argument("-s", "--schema", help="schema for psv infra", type=str, default="public")
-    ap.add_argument("-e", "--encoding", help="sql file encoding", type=str, default="UTF-8")
-    ap.add_argument("-H", "--hash", help="hashlib algorithm for step signature", type=str, default="sha3_256")
-    ap.add_argument("-o", "--out", help="output script, default on stdout", type=str, default=sys.stdout)
-    ap.add_argument("-T", "--trust-scripts", help="blindly trust provided scripts", action="store_true")
-    ap.add_argument("sql", help="sql data definition files", nargs="*")
+    ap = argparse.ArgumentParser(
+            prog="pg-schema-version",
+            description="Generate an idempotent psql script for Postgres schema versioning.",
+            epilog="All software have bugs…")
+    ap.add_argument("-d", "--debug", action="store_true",
+                    help="debug mode")
+    ap.add_argument("-a", "--app", type=str, default="app",
+                    help="application name, default is app")
+    ap.add_argument("-s", "--schema", type=str, default="public",
+                    help="schema for psv infra, default is public")
+    ap.add_argument("-e", "--encoding", type=str, default="UTF-8",
+                    help="sql file encoding, default is UTF-8")
+    ap.add_argument("-H", "--hash", type=str, default="sha3_256",
+                    help="hashlib algorithm for step signature, default is SHA3-256")
+    ap.add_argument("-o", "--out", type=str, default=sys.stdout,
+                    help="output script, default on stdout")
+    ap.add_argument("-T", "--trust-scripts", action="store_true",
+                    help="blindly trust provided scripts")
+    ap.add_argument("sql", nargs="*",
+                    help="sql data definition files")
     args = ap.parse_args()
 
     if args.debug:
