@@ -11,6 +11,7 @@ from .utils import openfiles, bytes_hash, log
 # TODO create option? no-create option? command?
 # TODO description can replace signature? added?
 # TODO out option
+# FIXME how to really stop on errors?
 
 APP_VERSION = r"""
 --- show app version
