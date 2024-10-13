@@ -17,8 +17,12 @@ with safety first in mind.
    - first schema upgrade `create_001.sql`
      ```sql
      CREATE TABLE AcmeType(atid SERIAL PRIMARY KEY, atype TEXT UNIQUE NOT NULL);
-     INSERT INTO AcmeType(atype) VALUES ('great'), ('super'), ('wow');
+     INSERT INTO AcmeType(atype) VALUES ('great'), ('super');
      ALTER TABLE AcmeData ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
+     ```
+   - second schema upgrade `create_002.sql`
+     ```sql
+     INSERT INTO AcmeType(atype) VALUES ('wow'), ('incredible');
      ```
 
 2. Generate a `psql`-script from these:
@@ -29,14 +33,26 @@ with safety first in mind.
 3. Execute the script against a database to bring its schema up to date.
    ```shell
    psql acme < acme.sql
-   # psv dry run for app acme, enable with -v psv_wet_run=1
-   # script will create infratructure and execute all commands
+   # psv command set to run, set with -v psv_cmd=…
+   # psv dry run for acme, enable with -v psv_wet_run=1
+   # script will create infratructure and execute all steps
 
    psql -v psv_wet_run=1 < acme.sql
-   # psv wet run for app acme
+   # psv wet run for acme
    # creating psv infrastructure
-   # creating acme version 1
-   # creating acme version 2
+   # registering app acme
+   # applying acme 1
+   # applying acme 2
+   # applying acme 3
+   # acme version: 3
+
+   # on rerun, do nothing
+   psql -v psv_wet_run=1 < acme.sql
+   # psv wet run for app acme
+   # skipping psv infrastructure
+   # applying acme 1
+   # applying acme 2
+   # applying acme 3
    # acme version: 2
    ```
 
