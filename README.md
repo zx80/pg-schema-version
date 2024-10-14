@@ -61,9 +61,9 @@ Several application can share the same setup.
    # on rerun, do nothing
    psql -v psv=wet < acme.sql
    # psv wet run for app acme
-   # psv applying acme 1
-   # psv applying acme 2
-   # psv applying acme 3
+   # psv skipping acme 1
+   # psv skipping acme 2
+   # psv skipping acme 3
    # psv acme version: 3
    # psv wet run for acme done
    ```
