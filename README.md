@@ -37,12 +37,12 @@ Several application can share the same setup.
 3. Execute the script against a database to bring its schema up to date.
    ```shell
    # first time MUST use command create
-   psql -v psv_cmd=create acme < acme.sql
+   psql -v psv=create acme < acme.sql
    # psv command set to create
-   # psv dry create for acme, enable with -v psv_wet=1
+   # psv dry create for acme, enable with -v psv=create:wet
    # psv script will create infra, register acme and execute all steps
 
-   psql -v psv_cmd=create -v psv_wet=1 < acme.sql
+   psql -v psv=create:wet < acme.sql
    # psv wet run for acme
    # psv creating psv infra
    # psv registering app acme
@@ -53,7 +53,7 @@ Several application can share the same setup.
    # psv wet run for acme done
 
    # on rerun, do nothing
-   psql -v psv_wet=1 < acme.sql
+   psql -v psv=wet < acme.sql
    # psv wet run for app acme
    # psv applying acme 1
    # psv applying acme 2
@@ -65,16 +65,17 @@ Several application can share the same setup.
 ## Features
 
 The python script generates a reasonably safe re-entrant idempotent SQL script
-driven by `psql`-variables `psv_cmd` and `psv_wet`:
+driven by `psql`-variable `psv` with value _command_:_moist_
 
-- if `psv_wet` is not set, the script only performs a dry run which does **not**
-  apply any schema changes.
-- available `psv_cmd` commands are:
+- available commands are (default is `run`):
   - `init` just initialize an empty psv infrastructure if needed.
   - `register` register new application in the psv infrastructure if needed.
   - `run` run required steps on an already registered application.
   - `create` do all of the above.
   - `remove` drop psv infrastructure.
+- available moistures are (default is `wet`):
+  - `dry` meaning that no changes are applied.
+  - `wet` to trigger actual changes.
 
 ## Caveats
 

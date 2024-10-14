@@ -45,20 +45,36 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 \endif
 \unset psv_pg_ko
 
--- command to execute
-\if :{{?psv_cmd}}
-  \echo # psv command is :psv_cmd
-\else
-  -- default command is to run the script (no init nor register)
-  \set psv_cmd run
-  \echo # psv command set to :psv_cmd, set with -v psv_cmd=…
-\endif
-
 -- application name
 \set psv_app {app}
 
+-- command to execute
+\if :{{?psv}}
+  -- nothing to do
+\else
+  -- default command is to run the script (no init nor register)
+  \set psv run:dry
+  \echo # psv set to :psv, change with -v psv=…
+\endif
+
+-- split command and moisture
+SELECT
+  CASE
+    WHEN :'psv' ~ ':' THEN SPLIT_PART(:'psv', ':', 1)
+    WHEN :'psv' IN ('dry', 'wet') THEN 'run'
+    ELSE :'psv'
+  END AS psv_cmd,
+  CASE
+    WHEN :'psv' ~ ':' THEN SPLIT_PART(:'psv', ':', 2)
+    WHEN :'psv' IN ('dry', 'wet') THEN :'psv'
+    ELSE 'dry'
+  END AS psv_mst
+  \gset
+
 -- set expected phases
 SELECT
+  -- check command validity
+  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'remove') AS psv_bad_cmd,
   -- whether to initialize the infra if needed
   :'psv_cmd' IN ('create', 'init')            AS psv_do_init,
   -- whether to register the application if needed
@@ -69,8 +85,10 @@ SELECT
   :'psv_cmd' IN ('create', 'run')             AS psv_do_steps,
   -- whether to remove the infrastructure
   :'psv_cmd' IN ('remove')                    AS psv_do_remove,
-  -- check command validity
-  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'remove') AS psv_bad_cmd
+  -- check moisture validity
+  :'psv_mst' NOT IN ('dry', 'wet')              AS psv_bad_mst,
+  -- dry run ?
+  :'psv_mst' = 'dry'                        AS psv_dry
   \gset
 
 -- check that command is valid
@@ -79,15 +97,16 @@ SELECT
   \quit
 \endif
 \unset psv_bad_cmd
+\if :psv_bad_mst
+  \warn # ERROR psv unexpected moisture :psv_mst, expecting: dry wet
+  \quit
+\endif
+\unset psv_bad_mst
 
--- set psv_dry
-\if :{{?psv_wet}}
-  \echo # psv wet :psv_cmd for :psv_app
-  \set psv_dry 0
-  \unset psv_wet
+\if :psv_dry
+  \echo # psv dry :psv_cmd for :psv_app, enable with -v psv=:psv_cmd::wet
 \else
-  \echo # psv dry :psv_cmd for :psv_app, enable with -v psv_wet=1
-  \set psv_dry 1
+  \echo # psv wet :psv_cmd for :psv_app
 \endif
 
 --
