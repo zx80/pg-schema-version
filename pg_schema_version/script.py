@@ -499,7 +499,7 @@ def psv():
     if isinstance(args.out, str):
         if os.path.exists(args.out):
             log.error(f"psv will not overwrite output file {args.out}, remove it first")
-            return 2
+            return 3
         args.out = open(args.out, "w")
 
     return gen_psql_script(args)

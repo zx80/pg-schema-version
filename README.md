@@ -10,10 +10,11 @@ useful features with safety in mind.
 The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
-![Tests](https://img.shields.io/badge/tests-135%20✓-success)
+![Tests](https://img.shields.io/badge/tests-144%20✓-success)
+![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
-![Badges](https://img.shields.io/badge/badges-5-informational)
+![Badges](https://img.shields.io/badge/badges-6-informational)
 ![License](https://img.shields.io/pypi/l/pg-schema-version?style=flat)
 
 ## Usage
@@ -103,6 +104,11 @@ They can be circumvented with option `--trust-scripts`.
 Test your scripts with care before applying it to production data.
 
 ## Versions
+
+### ? on ?
+
+- add coverage tests
+- use exit code 3 for output file
 
 ### 0.1 on 2024-10-14
 

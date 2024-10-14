@@ -12,6 +12,7 @@ PACKAGE = pg_schema_version
 clean:
 	$(RM) *~
 	$(RM) -r __pycache__ $(PACKAGE)/__pycache__ .ruff_cache dist
+	$(MAKE) -C tests $@
 
 .PHONY: clean.venv
 clean.venv: clean
@@ -47,8 +48,13 @@ check.test: venv
 	source venv/bin/activate
 	$(MAKE) -C tests $@
 
+.PHONY: check.coverage
+check.coverage: venv
+	source venv/bin/activate
+	$(MAKE) -C tests $@
+
 .PHONY: check
-check: check.ruff check.pyright check.test
+check: check.ruff check.pyright check.test check.coverage
 
 #
 # publication

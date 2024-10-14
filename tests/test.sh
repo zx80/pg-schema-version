@@ -1,10 +1,12 @@
 #! /bin/bash
 
-set -o pipefail
-
 db=pg_schema_version_test
 psv=pg-schema-version
 pg=psql 
+
+[ "$1" ] && psv="$1"
+
+set -o pipefail
 
 # counters
 OK=0 KO=0 TEST=0
@@ -48,10 +50,8 @@ function check_ver()
 function check_psv()
 {
   local name="$1" expect="$2" app="$3"
-  shift 4
+  shift 3
   let TEST+=1
-
-  [ "$cmd" ] && cmd="-v psv=$cmd"
 
   $psv -a "$app" "$@" > /dev/null
   result=$?
@@ -231,16 +231,34 @@ check_ver "6.c" foo 3
 check_que "6.d" 4 "SELECT COUNT(*) FROM Foo"
 check_run "6.h" 0 app "remove:wet"
 check_nop "6.i"
-$pg -c "DROP TABLE Foo" $db  # cleanuo
+$pg -c "DROP TABLE Foo" $db  # cleanup
 
 # help
 check_run "7.0" 0 app "help"
 check_run "7.1" 0 app "help:dry"
 check_run "7.2" 0 app "help:wet"
 
-# content errors
-check_psv "bs command in script" 1 app "init:dry" bad_bs.sql
-check_psv "sql command in script" 2 app "init:dry" bad_sql.sql
+# content errors and ignore
+check_psv "bs command in script" 1 app bad_bs.sql
+check_psv "bs command in script" 0 app -T bad_bs.sql
+check_psv "sql command in script" 2 app bad_sql.sql
+check_psv "sql command in script" 0 app -T bad_sql.sql
+
+# various options
+echo "-- bla 2 script" | check_psv "standard input" 0 app --debug bla_1.sql - bla_3.sql
+
+$pg -c "CREATE SCHEMA psv_test_schema" $db
+check_nop "8.0"
+check_run "8.1" 0 bla "init:wet"   -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_run "8.2" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_run "8.3" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_run "8.4" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+$pg -c "DROP SCHEMA psv_test_schema" $db
+
+rm -f tmp.out
+check_psv "9.0 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "9.1 output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
+rm -f tmp.out
 
 dropdb $db
 
