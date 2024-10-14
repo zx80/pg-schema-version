@@ -105,6 +105,13 @@ Test your scripts with care before applying it to production data.
 
 ## Versions
 
+### TODO
+
+- activate GitHub CI and documentation.
+- reverse?
+- verbose mode?
+- add description?
+
 ### ? on ?
 
 - add coverage tests
