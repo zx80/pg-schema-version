@@ -39,5 +39,10 @@ check.pyright: venv
 	source venv/bin/activate
 	pyright $(PACKAGE)
 
+.PHONY: check.test
+check.test: venv
+	source venv/bin/activate
+	$(MAKE) -C tests $@
+
 .PHONY: check
-check: check.ruff check.pyright
+check: check.ruff check.pyright check.test

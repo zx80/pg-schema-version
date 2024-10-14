@@ -17,7 +17,7 @@ version = "1.0"
 dependencies = [ ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pyright", "ruff"]
+dev = ["pyright", "ruff"]
 
 [project.scripts]
 pg-schema-version = "pg_schema_version:psv"
