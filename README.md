@@ -107,13 +107,14 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
-- activate GitHub CI and documentation.
+- activate GitHub CI.
 - reverse?
 - verbose mode?
 - add description?
 
 ### ? on ?
 
+- activate GitHub pages
 - add coverage tests
 - use exit code 3 for output file
 
