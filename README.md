@@ -80,7 +80,7 @@ driven by `psql`-variable `psv` with value _command_:_moist_
   - `create` do all of the above.
   - `remove` drop psv infrastructure.
   - `help` show some help.
-- available moistures are (default is `wet`):
+- available moistures are (default is `dry`):
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
 
