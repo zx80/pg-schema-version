@@ -119,7 +119,7 @@ SELECT
 SELECT COUNT(*) = 0 AS psv_no_infra
   FROM pg_catalog.pg_tables
   WHERE schemaname = '{schema}'
-    AND tablename = 'psv_app_status'
+    AND tablename = '{table}'
   \gset
 
 \if :psv_do_init
@@ -150,7 +150,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 BEGIN;
 
 -- create psv application status table
-CREATE TABLE {schema}.psv_app_status(
+CREATE TABLE {schema}.{table}(
   id SERIAL PRIMARY KEY,
   app TEXT NOT NULL DEFAULT 'psv',
   version INTEGER NOT NULL DEFAULT 0,
@@ -162,7 +162,7 @@ CREATE TABLE {schema}.psv_app_status(
 );
 
 -- register itself
-INSERT INTO {schema}.psv_app_status DEFAULT VALUES;
+INSERT INTO {schema}.{table} DEFAULT VALUES;
 
 COMMIT;
 
@@ -215,7 +215,7 @@ COMMIT;
   \echo # psv all applications status
 
   SELECT app, MAX(version) AS version
-    FROM psv_app_status
+    FROM {schema}.{table}
     GROUP BY 1
     ORDER BY 1;
 
@@ -229,7 +229,7 @@ COMMIT;
   \if :psv_dry
     \echo # psv will drop its infra if it exists
   \else
-    DROP TABLE IF EXISTS psv_app_status;
+    DROP TABLE IF EXISTS {schema}.{table};
   \endif
   -- nothing else to do
   \quit
@@ -241,11 +241,11 @@ COMMIT;
 \if :psv_dry
   -- copy
   CREATE TEMPORARY TABLE PsvAppStatus
-    AS SELECT * FROM {schema}.psv_app_status;
+    AS SELECT * FROM {schema}.{table};
 \else
   -- reference
   CREATE TEMPORARY VIEW PsvAppStatus
-    AS SELECT * FROM {schema}.psv_app_status;
+    AS SELECT * FROM {schema}.{table};
 \endif
 
 -- self check for possible future upgrades
@@ -401,7 +401,7 @@ def gen_psql_script(args):
     def output(s: str):
         print(s, file=args.out, end="")
 
-    output(SCRIPT_HEADER.format(app=args.app, schema=args.schema))
+    output(SCRIPT_HEADER.format(app=args.app, schema=args.schema, table=args.table))
 
     version = 0
     for fn, fh in openfiles(args.sql):
@@ -427,7 +427,7 @@ def gen_psql_script(args):
         output(script)
         output(FILE_FOOTER)
 
-    output(SCRIPT_FOOTER.format(app=args.app, schema=args.schema))
+    output(SCRIPT_FOOTER.format(app=args.app, schema=args.schema, table=args.table))
 
     return 0
 
@@ -442,13 +442,15 @@ def psv():
     ap.add_argument("-d", "--debug", action="store_true",
                     help="debug mode")
     ap.add_argument("-a", "--app", type=str, default="app",
-                    help="application name, default is app")
+                    help="application name, default is 'app'")
     ap.add_argument("-s", "--schema", type=str, default="public",
-                    help="schema for psv infra, default is public")
+                    help="schema for psv infra, default is 'public'")
+    ap.add_argument("-t", "--table", type=str, default="psv_app_status",
+                    help="psv table name, default is 'psv_app_status'")
     ap.add_argument("-e", "--encoding", type=str, default="UTF-8",
-                    help="sql file encoding, default is UTF-8")
+                    help="sql file encoding, default is 'UTF-8'")
     ap.add_argument("-H", "--hash", type=str, default="sha3_256",
-                    help="hashlib algorithm for step signature, default is SHA3-256")
+                    help="hashlib algorithm for step signature, default is 'SHA3-256'")
     ap.add_argument("-o", "--out", type=str, default=sys.stdout,
                     help="output script, default on stdout")
     ap.add_argument("-T", "--trust-scripts", action="store_true",
