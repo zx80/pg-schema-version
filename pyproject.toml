@@ -12,7 +12,13 @@ description = "Lightweight Postgres Schema Versioning"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "CC0 1.0" }
-classifiers = ["Topic :: Software Development"]
+classifiers = [
+    "Topic :: Software Development",
+    "Topic :: Database",
+    "Programming Language :: Python",
+    "Programming Language :: SQL",
+    "Development Status :: 4 - Beta",
+]
 version = "0.1"
 dependencies = [ ]
 
