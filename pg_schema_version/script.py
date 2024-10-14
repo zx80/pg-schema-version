@@ -12,16 +12,20 @@ from .utils import openfiles, bytes_hash, log
 # TODO psv_cmd=help
 
 APP_VERSION = r"""
---- show target app version if available
-SELECT MAX(version) AS psv_version
-  FROM PsvAppStatus
-  WHERE app = :'psv_app'
-  \gset
-\if :{{?psv_version}}
-  \echo # psv :psv_app version: :psv_version
-  \unset psv_version
+\if :psv_no_infra
+  \echo # psv skipping showing :psv_app version, no infra
 \else
-  \echo # psv :psv_app is not registered
+  --- show target app version if available
+  SELECT MAX(version) AS psv_version
+    FROM PsvAppStatus
+    WHERE app = :'psv_app'
+    \gset
+  \if :{{?psv_version}}
+    \echo # psv :psv_app version: :psv_version
+    \unset psv_version
+  \else
+    \echo # psv :psv_app is not registered
+  \endif
 \endif
 """
 
@@ -162,6 +166,7 @@ INSERT INTO {schema}.psv_app_status DEFAULT VALUES;
 
 COMMIT;
 
+      \set psv_no_infra 0
     \endif
   \else
     -- infra already exists
