@@ -10,6 +10,12 @@ useful features with safety in mind.
 The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
+![Tests](https://img.shields.io/badge/tests-135%20✓-success)
+![Python](https://img.shields.io/badge/python-3-informational)
+![Version](https://img.shields.io/pypi/v/pg-schema-version)
+![Badges](https://img.shields.io/badge/badges-6-informational)
+![License](https://img.shields.io/pypi/l/pg-schema-version?style=flat)
+
 ## Usage
 
 1. Write a sequence of incremental postgres SQL data definition scripts
