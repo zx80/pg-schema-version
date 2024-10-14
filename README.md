@@ -70,12 +70,17 @@ driven by `psql`-variable `psv` with value _command_:_moist_
 - available commands are (default is `run`):
   - `init` just initialize an empty psv infrastructure if needed.
   - `register` register new application in the psv infrastructure if needed.
-  - `run` run required steps on an already registered application.
+  - `run` apply required steps on an already registered application.
   - `create` do all of the above.
   - `remove` drop psv infrastructure.
+  - `help` show some help.
 - available moistures are (default is `wet`):
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
+
+The only way is forward: there is no provision to go back to a previous
+state. However, note that schema steps are performed in a transaction, so
+that it can only fail one full step at a time.
 
 ## Caveats
 
@@ -88,6 +93,8 @@ To be safe, SQL schema creation scripts must **NOT**:
 
 Imperfect checks are performed to detect the above issues.
 They can be circumvented with option `--trust-scripts`.
+
+Test your scripts with care before applying it to production data.
 
 ## License
 

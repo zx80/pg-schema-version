@@ -233,6 +233,11 @@ check_run "6.h" 0 app "remove:wet"
 check_nop "6.i"
 $pg -c "DROP TABLE Foo" $db  # cleanuo
 
+# help
+check_run "7.0" 0 app "help"
+check_run "7.1" 0 app "help:dry"
+check_run "7.2" 0 app "help:wet"
+
 # content errors
 check_psv "bs command in script" 1 app "init:dry" bad_bs.sql
 check_psv "sql command in script" 2 app "init:dry" bad_sql.sql
