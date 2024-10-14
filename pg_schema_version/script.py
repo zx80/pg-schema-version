@@ -158,7 +158,7 @@ CREATE TABLE {schema}.psv_app_status(
 );
 
 -- register itself
-INSERT INTO PUBLIC.psv_app_status DEFAULT VALUES;
+INSERT INTO {schema}.psv_app_status DEFAULT VALUES;
 
 COMMIT;
 
