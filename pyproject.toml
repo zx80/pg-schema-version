@@ -8,7 +8,7 @@ include = ["pg_schema_version"]
 [project]
 name = "pg-schema-version"
 authors = [{ name = "Fabien Coelho" }]
-description = "Lightweight Postgres Schema Versioning"
+description = "Simple Postgres Schema Versioning"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "CC0 1.0" }

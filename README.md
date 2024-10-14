@@ -1,4 +1,4 @@
-# Lightweight Postgres Schema Versioning
+# _Simple_ Postgres Schema Versioning
 
 There already exists _many_ tools to manage database schema versions, such as
 [sqitch](https://sqitch.org/), or [alembic](https://alembic.sqlalchemy.org/).
