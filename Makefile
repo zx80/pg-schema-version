@@ -26,7 +26,7 @@ clean.dev: clean clean.venv
 
 venv:
 	$(PYTHON) -m venv venv
-	./venv/bin/pip install -e .[dev]
+	./venv/bin/pip install -e .[dev,pub]
 
 #
 # checks
@@ -49,3 +49,17 @@ check.test: venv
 
 .PHONY: check
 check: check.ruff check.pyright check.test
+
+#
+# publication
+#
+
+# distribution
+dist: venv
+	source venv/bin/activate
+	$(PYTHON) -m build
+
+.PHONY: publish
+publish: dist
+	# provide pypi ids in ~/.pypirc
+	echo ./venv/bin/twine upload dist/*
