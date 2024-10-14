@@ -11,11 +11,14 @@ PACKAGE = pg_schema_version
 .PHONY: clean
 clean:
 	$(RM) *~
-	$(RM) -r __pycache__ $(PACKAGE)/__pycache__
+	$(RM) -r __pycache__ $(PACKAGE)/__pycache__ .ruff_cache
+
+.PHONY: clean.venv
+clean.venv: clean
+	$(RM) -r venv $(PACKAGE).egg-info
 
 .PHONY: clean.dev
-clean.dev: clean
-	$(RM) -r venv $(PACKAGE).egg-info
+clean.dev: clean clean.venv
 
 #
 # environment
