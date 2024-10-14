@@ -11,7 +11,7 @@ PACKAGE = pg_schema_version
 .PHONY: clean
 clean:
 	$(RM) *~
-	$(RM) -r __pycache__ $(PACKAGE)/__pycache__ .ruff_cache
+	$(RM) -r __pycache__ $(PACKAGE)/__pycache__ .ruff_cache dist
 
 .PHONY: clean.venv
 clean.venv: clean
