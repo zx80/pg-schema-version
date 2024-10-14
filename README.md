@@ -102,6 +102,12 @@ They can be circumvented with option `--trust-scripts`.
 
 Test your scripts with care before applying it to production data.
 
+## Versions
+
+### 0.1 on 2024-10-14
+
+- initial beta version for testing
+
 ## License
 
 This code is [Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
