@@ -116,8 +116,9 @@ Test your scripts with care before applying it to production data.
 ### TODO
 
 - unregister?
+- catchup?
 - reverse?
-- point to?
+- version?
 - verbose mode?
 - add description?
 
