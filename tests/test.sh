@@ -3,7 +3,10 @@
 # override from the environment
 db=${TEST_DB:-pg_schema_version_test}
 psv=${TEST_PSV:-pg-schema-version}
-pg=${TEST_PSQL:-psql}
+psql=${TEST_PSQL:-psql}
+pgopts=${TEST_PG_OPTS:-}
+
+pg="$psql $pgopts"
 
 set -o pipefail
 
@@ -84,8 +87,8 @@ function check_run()
   fi
 }
 
-dropdb $db
-createdb $db
+dropdb $pgopts $db
+createdb $pgopts $db
 
 # create and remove the infra
 check_nop "0.0"
@@ -259,7 +262,7 @@ check_psv "9.0 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
 check_psv "9.1 output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
 
-dropdb $db
+dropdb $pgopts $db
 
 echo "passed: $OK/$TEST"
 exit $KO
