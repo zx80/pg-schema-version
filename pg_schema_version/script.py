@@ -305,8 +305,8 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 -- REGISTER
 --
 
-\if :psv_app_ko
-  \if :psv_do_register
+\if :psv_do_register
+  \if :psv_app_ko
     \if :psv_dry
       \echo # psv will register :psv_app
     \else
@@ -315,20 +315,20 @@ SELECT COUNT(*) = 0 AS psv_app_ko
     -- actually register, possibly on the copy for the dry run
     INSERT INTO PsvAppStatus(app) VALUES (:'psv_app');
   \else
-    -- not registered and will not register…
+    \echo # psv skipping unneeded :psv_app registration
+  \endif
+\else
+  \if :psv_app_ko
     \if :psv_do_steps
       \warn # ERROR :psv_app registration needed
       \quit
     -- else it will not be needed
     \endif
   \endif
-\else
-  \if :psv_do_register
-    \if :psv_dry
-      \echo # psv will skip :psv_app registration
-    \else
-      \echo # psv skipping :psv_app registration
-    \endif
+  \if :psv_dry
+    \echo # psv will skip :psv_app registration
+  \else
+    \echo # psv skipping :psv_app registration
   \endif
 \endif
 

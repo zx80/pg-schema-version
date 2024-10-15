@@ -117,7 +117,6 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
-- reorder register conditions
 - catchup?
 - reverse?
 - version?
@@ -127,6 +126,7 @@ Test your scripts with care before applying it to production data.
 ### ? on ?
 
 - add unregister command.
+- refactor registration
 
 ### 0.2 on 2024-10-15
 
