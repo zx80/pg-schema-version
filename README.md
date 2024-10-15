@@ -122,12 +122,15 @@ Test your scripts with care before applying it to production data.
 - reverse?
 - version?
 - verbose mode?
-- add description? filename?
+- add description?
+- write a tutorial
+- write recipes
 
 ### ? on ?
 
 - add unregister command
 - add catchup command
+- add filename field
 - refactor registration
 
 ### 0.2 on 2024-10-15

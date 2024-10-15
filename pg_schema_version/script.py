@@ -195,6 +195,7 @@ CREATE TABLE {schema}.{table}(
   app TEXT NOT NULL DEFAULT 'psv',
   version INTEGER NOT NULL DEFAULT 0,
   signature TEXT DEFAULT NULL,
+  filename TEXT DEFAULT NULL,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE(app, version),
   UNIQUE(signature),
@@ -384,6 +385,7 @@ FILE_HEADER = r"""
   -- File {file}
   --
   -- check whether version is needed
+  \set psv_filename {filename}
   \set psv_version {version}
   \set psv_signature {signature}
 
@@ -423,8 +425,8 @@ FILE_HEADER = r"""
         \quit
       \endif
       -- do it anyway, possibly on the fake copy ?
-      INSERT INTO PsvAppStatus(app, version, signature)
-        VALUES (:'psv_app', :'psv_version', :'psv_signature');
+      INSERT INTO PsvAppStatus(app, version, signature, filename)
+        VALUES (:'psv_app', :'psv_version', :'psv_signature', :'psv_filename');
     \else
       -- actual execution mode!
       \if :psv_signature_used
@@ -436,8 +438,8 @@ FILE_HEADER = r"""
       \if :psv_dry
         \echo # psv will apply :psv_app :psv_version
         -- upgrade application new version for dry run, on the tmp table
-        INSERT INTO PsvAppStatus(app, version, signature)
-          VALUES (:'psv_app', :psv_version, :'psv_signature');
+        INSERT INTO PsvAppStatus(app, version, signature, filename)
+          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename');
       \else
         \echo # applying :psv_app :psv_version
 
@@ -446,8 +448,8 @@ FILE_HEADER = r"""
 
 FILE_FOOTER = r"""
     -- upgrade application new version
-    INSERT INTO PsvAppStatus(app, version, signature)
-      VALUES (:'psv_app', :psv_version, :'psv_signature');
+    INSERT INTO PsvAppStatus(app, version, signature, filename)
+      VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename');
 
   COMMIT;
 
@@ -468,7 +470,8 @@ FILE_FOOTER = r"""
           \echo # psv updating signature
         \endif
         UPDATE PsvAppStatus
-          SET signature = :'psv_signature'
+          SET signature = :'psv_signature',
+              filename = :'filename'
           WHERE app = :'pvs_app'
             AND version = :'psv_version';
       \else
@@ -537,7 +540,8 @@ def gen_psql_script(args):
         data = script.encode(args.encoding)
         signature = bytes_hash(args.hash, data)
         # output psql code
-        output(FILE_HEADER.format(file=fn, version=version, signature=signature))
+        output(FILE_HEADER.format(file=fn, version=version, signature=signature,
+                                  filename=fn.split("/")[-1]))
         output(script)
         output(FILE_FOOTER)
 
