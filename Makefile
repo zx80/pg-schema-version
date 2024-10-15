@@ -79,7 +79,7 @@ check: check.ruff check.pyright check.test check.coverage check.md
 #
 
 # distribution
-dist: venv
+dist: venv.pub
 	source venv/bin/activate
 	$(PYTHON) -m build
 
