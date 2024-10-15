@@ -45,17 +45,17 @@ venv.pub: venv
 #
 
 .PHONY: check.ruff
-check.ruff: venv
+check.ruff: venv.dev
 	source venv/bin/activate
 	ruff check $(PACKAGE)
 
 .PHONY: check.pyright
-check.pyright: venv
+check.pyright: venv.dev
 	source venv/bin/activate
 	pyright $(PACKAGE)
 
 .PHONY: check.md
-check.md: venv
+check.md: venv.dev
 	source venv/bin/activate
 	pymarkdownlnt scan *.md
 
@@ -65,9 +65,11 @@ check.test: venv
 	$(MAKE) -C tests $@
 
 .PHONY: check.coverage
-check.coverage: venv
+check.coverage: venv.dev
 	source venv/bin/activate
 	$(MAKE) -C tests $@
+
+.NOTPARALLEL: check.test check.coverage
 
 .PHONY: check
 check: check.ruff check.pyright check.test check.coverage check.md
