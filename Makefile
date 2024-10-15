@@ -2,6 +2,7 @@ SHELL   = /bin/bash
 .ONESHELL:
 
 PYTHON  = python
+PIP     = ./venv/bin/pip
 PACKAGE = pg_schema_version
 
 #
@@ -27,7 +28,17 @@ clean.dev: clean clean.venv
 
 venv:
 	$(PYTHON) -m venv venv
-	./venv/bin/pip install -e .[dev,pub]
+	$(PIP) install -e .
+
+.PHONY: venv.dev
+venv.dev: venv
+	source venv/bin/activate
+	$(PIP) install -e .[dev]
+
+.PHONY: venv.pub
+venv.pub: venv
+	source venv/bin/activate
+	$(PIP) install -e .[pub]
 
 #
 # checks
