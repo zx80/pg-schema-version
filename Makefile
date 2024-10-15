@@ -54,6 +54,11 @@ check.pyright: venv
 	source venv/bin/activate
 	pyright $(PACKAGE)
 
+.PHONY: check.md
+check.md: venv
+	source venv/bin/activate
+	pymarkdownlnt scan *.md
+
 .PHONY: check.test
 check.test: venv
 	source venv/bin/activate
@@ -65,7 +70,7 @@ check.coverage: venv
 	$(MAKE) -C tests $@
 
 .PHONY: check
-check: check.ruff check.pyright check.test check.coverage
+check: check.ruff check.pyright check.test check.coverage check.md
 
 #
 # publication

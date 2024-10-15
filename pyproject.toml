@@ -23,7 +23,7 @@ version = "0.1"
 dependencies = [ ]
 
 [project.optional-dependencies]
-dev = ["pyright", "ruff", "coverage"]
+dev = ["pyright", "ruff", "coverage","pymarkdownlnt"]
 pub = ["build", "twine", "wheel"]
 
 [project.scripts]

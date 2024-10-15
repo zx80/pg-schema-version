@@ -22,26 +22,33 @@ Several application can share the same setup.
 1. Write a sequence of incremental postgres SQL data definition scripts
 
    - initial schema creation `create_000.sql`
+
      ```sql
      CREATE TABLE AcmeData(aid SERIAL PRIMARY KEY, data TEXT UNIQUE NOT NULL);
      ```
+
    - first schema upgrade `create_001.sql`
+
      ```sql
      CREATE TABLE AcmeType(atid SERIAL PRIMARY KEY, atype TEXT UNIQUE NOT NULL);
      INSERT INTO AcmeType(atype) VALUES ('great'), ('super');
      ALTER TABLE AcmeData ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
      ```
+
    - second schema upgrade `create_002.sql`
+
      ```sql
      INSERT INTO AcmeType(atype) VALUES ('wow'), ('incredible');
      ```
 
 2. Generate a `psql`-script from these for the target application:
+
    ```shell
    pg-schema-version -a acme create_*.sql > acme.sql
    ```
 
 3. Execute the script against a database to bring its schema up to date.
+
    ```shell
    # first time MUST use command create
    psql -v psv=create acme < acme.sql
