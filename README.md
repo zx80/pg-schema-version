@@ -10,12 +10,13 @@ useful features with safety in mind.
 The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
+![Status](https://github.com/zx80/anodb/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
 ![Tests](https://img.shields.io/badge/tests-144%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
-![Badges](https://img.shields.io/badge/badges-6-informational)
 ![License](https://img.shields.io/pypi/l/pg-schema-version?style=flat)
+![Badges](https://img.shields.io/badge/badges-7-informational)
 
 ## Usage
 
@@ -114,16 +115,17 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
-- activate GitHub CI.
 - reverse?
 - point to?
 - verbose mode?
 - add description?
 
-### ? on ?
+### 0.2 on 2024-10-15
 
 - activate GitHub pages
-- add coverage tests
+- working GitHub CI
+- add coverage check
+- add markdown check
 - use exit code 3 for output file
 
 ### 0.1 on 2024-10-14
