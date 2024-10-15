@@ -121,7 +121,7 @@ Test your scripts with care before applying it to production data.
 - reverse?
 - version?
 - verbose mode?
-- add description?
+- add description? filename?
 
 ### ? on ?
 
