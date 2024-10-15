@@ -10,7 +10,7 @@ useful features with safety in mind.
 The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
-![Status](https://github.com/zx80/anodb/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
+![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
 ![Tests](https://img.shields.io/badge/tests-144%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
