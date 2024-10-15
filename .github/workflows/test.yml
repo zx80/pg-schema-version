@@ -34,7 +34,7 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
     env:
-      TEST_PSQL: psql -h postgres -U psv
+      TEST_PSQL: psql -h localhost -U psv
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
