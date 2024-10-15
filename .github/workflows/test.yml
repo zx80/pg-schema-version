@@ -1,0 +1,58 @@
+name: pg-schema-version Package
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "pypy3.10"]
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # GitHub Docker Images: https://github.com/docker-library/official-images/blob/master/library/postgres
+        image: postgres:alpine
+        # Provide the password for postgres
+        env:
+          POSTGRES_USER: psv
+          POSTGRES_PASSWORD: psv-pass
+          POSTGRES_DB: psv
+          POSTGRES_HOST_AUTH_METHOD: trust
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+    env:
+      TEST_PSQL: psql -h postgres -U psv
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
+    - name: Install Packages
+      run: sudo apt install postgresql-client
+    - name: Install Python Dependencies
+      run: make venv.dev
+    - name: Check markdown
+      run: make check.md
+    - name: Check types with pyright
+      run: make check.pyright
+    - name: Lint with ruff
+      run: make check.ruff
+    - name: Functional tests
+      run: make check.test
+    - name: Coverage tests
+      run: make check.coverage
