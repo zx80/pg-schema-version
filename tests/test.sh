@@ -1,10 +1,9 @@
 #! /bin/bash
 
-db=pg_schema_version_test
-psv=pg-schema-version
-pg=psql 
-
-[ "$1" ] && psv="$1"
+# override from the environment
+db=${TEST_DB:-pg_schema_version_test}
+psv=${TEST_PSV:-pg-schema-version}
+pg=${TEST_PSQL_COMMAND:-psql}
 
 set -o pipefail
 

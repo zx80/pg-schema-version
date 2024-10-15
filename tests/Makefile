@@ -1,3 +1,6 @@
+SHELL   = /bin/bash
+.ONESHELL:
+
 .PHONY: clean
 clean:
 	$(RM) .coverage
@@ -7,11 +10,14 @@ check.commands:
 	type psql || exit 1
 	type pg-schema-version || exit 2
 
+.NOTPARALLEL: check.test check.coverage
+
 .PHONY: check.test
 check.test: check.commands
 	./test.sh || exit 3
 
 .PHONY: check.coverage
-check.coverage: check.commands
-	./test.sh "coverage run -a ../venv/bin/pg-schema-version"
+check.coverage: clean check.commands
+	export TEST_PSV="coverage run -a ../venv/bin/pg-schema-version"
+	$(MAKE) check.test
 	coverage report --show-missing --precision=1 --fail-under=100.0
