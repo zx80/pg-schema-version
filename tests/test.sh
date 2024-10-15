@@ -13,18 +13,26 @@ set -o pipefail
 # counters
 OK=0 KO=0 TEST=0
 
+function test_result()
+{
+  local name="$1" val="$2" expect="$3"
+  shift 3
+  let TEST+=1
+  if [ "$val" -eq "$expect" ] ; then
+    let OK+=1
+  else
+    let KO+=1
+    echo "KO: $name ($val vs $expect)" 1>&2
+    [ "$TEST_STOP" ] && exit 1
+  fi
+}
+
 function check_que()
 {
   local name="$1" number="$2" query="$3"
   shift 3
-  let TEST+=1
   n=$($pg -tA -c "$query" $db)
-  if [ "$n" -eq "$number" ] ; then
-    let OK+=1
-  else
-    let KO+=1
-    echo "KO: $name ($n vs $number)" 1>&2
-  fi
+  test_result "$name" "$n" "$number"
 }
 
 function check_nop()
@@ -53,38 +61,24 @@ function check_psv()
 {
   local name="$1" expect="$2" app="$3"
   shift 3
-  let TEST+=1
 
   $psv -a "$app" "$@" > /dev/null
   result=$?
 
-  if [ "$result" -eq "$expect" ] ; then
-    let OK+=1
-  else
-    let KO+=1
-    echo "KO: psv $name ($result vs $expect)" 1>&2
-    return
-  fi
+  test_result "psv $name" "$result" "$expect"
 }
 
 function check_run()
 {
   local name="$1" expect="$2" app="$3" cmd="$4"
   shift 4
-  let TEST+=1
 
   [ "$cmd" ] && cmd="-v psv=$cmd"
 
   $psv -a "$app" "$@" | $pg $cmd $db
   result=$?
 
-  if [ "$result" -eq "$expect" ] ; then
-    let OK+=1
-  else
-    let KO+=1
-    echo "KO: run $name $cmd ($result vs $expect)" 1>&2
-    return
-  fi
+  test_result "run $name $cmd" "$result" "$expect"
 }
 
 dropdb $pgopts $db
@@ -247,10 +241,22 @@ check_run "6.h" 0 app "remove:wet"
 check_nop "6.i"
 $pg -c "DROP TABLE Foo" $db  # cleanup
 
-# help
-check_run "7.0" 0 app "help"
-check_run "7.1" 0 app "help:dry"
-check_run "7.2" 0 app "help:wet"
+# catchup
+check_nop "7.0"
+check_que "7.1" 0 "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE tablename = 'Foo'"
+check_run "7.2" 0 foo "catchup" foo_1.sql
+check_run "7.3" 0 foo "catchup:dry" foo_1.sql
+check_nop "7.4"
+check_run "7.5" 0 foo "catchup:wet" foo_1.sql
+check_cnt "7.6" 2
+check_ver "7.7" foo 1
+check_run "7.8" 0 foo "catchup:wet" foo_1.sql foo_2.sql
+check_ver "7.9" foo 2
+check_run "7.a" 0 foo "catchup:wet" foo_1.sql foo_2.sql foo_3.sql
+check_ver "7.b" foo 3
+check_que "7.c" 0 "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE tablename = 'Foo'"
+check_run "7.d" 0 app "remove:wet"
+check_nop "7.e"
 
 # content errors and ignore
 check_psv "bs command in script" 1 app bad_bs.sql
@@ -273,6 +279,11 @@ rm -f tmp.out
 check_psv "9.0 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
 check_psv "9.1 output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
+
+# help
+check_run "A.0" 0 app "help"
+check_run "A.1" 0 app "help:dry"
+check_run "A.2" 0 app "help:wet"
 
 dropdb $pgopts $db
 

@@ -45,7 +45,7 @@ SCRIPT_HEADER = r"""--
 -- Control the script behavior by setting psql-variable "psv",
 -- with the format command:moisture.
 --
--- Available commands: init, register, run (default), create, status, remove, help.
+-- Available commands: init, register, run (default), create, status, unregister, remove, help, catchup.
 -- Available moistures: dry (default), wet.
 
 -- any error will stop the script immediately
@@ -89,28 +89,32 @@ SELECT
 SELECT
 
   -- check command validity
-  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'unregister', 'remove', 'help') AS psv_bad_cmd,
+  :'psv_cmd' NOT IN ('init', 'register', 'run',
+      'create', 'status', 'unregister', 'remove',
+      'help', 'catchup')                             AS psv_bad_cmd,
 
   -- whether to initialize the infra if needed
-  :'psv_cmd' IN ('create', 'init')            AS psv_do_init,
+  :'psv_cmd' IN ('create', 'init', 'catchup')        AS psv_do_init,
   -- whether to register the application if needed
-  :'psv_cmd' IN ('create', 'register')        AS psv_do_register,
+  :'psv_cmd' IN ('create', 'register', 'catchup')    AS psv_do_register,
   -- whether to unregister the application
-  :'psv_cmd' IN ('unregister')                AS psv_do_unregister,
+  :'psv_cmd' IN ('unregister')                       AS psv_do_unregister,
   -- whether to show all application status
-  TRUE                                        AS psv_do_status,
+  TRUE                                               AS psv_do_status,
   -- whether to run schema create steps
-  :'psv_cmd' IN ('create', 'run')             AS psv_do_steps,
+  :'psv_cmd' IN ('create', 'run', 'catchup')         AS psv_do_steps,
   -- whether to remove the infrastructure
-  :'psv_cmd' IN ('remove')                    AS psv_do_remove,
+  :'psv_cmd' IN ('remove')                           AS psv_do_remove,
   -- whether to show help
-  :'psv_cmd' IN ('help')                      AS psv_do_help,
+  :'psv_cmd' IN ('help')                             AS psv_do_help,
+  -- whether to catchup application versions
+  :'psv_cmd' IN ('catchup')                          AS psv_do_catchup,
 
   -- check moisture validity
-  :'psv_mst' NOT IN ('dry', 'wet')            AS psv_bad_mst,
+  :'psv_mst' NOT IN ('dry', 'wet')                   AS psv_bad_mst,
 
   -- dry run ?
-  :'psv_mst' = 'dry'                          AS psv_dry
+  :'psv_mst' = 'dry'                                 AS psv_dry
   \gset
 
 -- check that command is valid
@@ -354,97 +358,142 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 \endif
 
 --
--- STEPS
+-- STEPS OR CATCHUP
 --
 
 -- consider each step in turn
 \if :psv_do_steps
-  \if :psv_dry
-    \echo # psv will consider applying all steps
+
+  -- display helpers
+  \if :psv_do_catchup
+    \set psv_operating catching-up
   \else
-    \echo # psv considering all steps
+    \set psv_operating applying
   \endif
 
+  -- overall action summary
+  \if :psv_dry
+    \echo # psv will consider :psv_operating all steps
+  \else
+    \echo # psv considering :psv_operating all steps
+  \endif
 """ + APP_VERSION
 
 FILE_HEADER = r"""
---
--- File {file}
---
--- check whether version is needed
-\set psv_version {version}
-\set psv_signature {signature}
+  --
+  -- File {file}
+  --
+  -- check whether version is needed
+  \set psv_version {version}
+  \set psv_signature {signature}
 
--- app schema upgrade already applied
-SELECT COUNT(*) = 0 AS psv_version_needed
-  FROM PsvAppStatus
-  WHERE app = :'psv_app'
-    AND version = :psv_version
-  \gset
+  -- app schema upgrade already applied
+  SELECT COUNT(*) = 0 AS psv_version_needed
+    FROM PsvAppStatus
+    WHERE app = :'psv_app'
+      AND version = :psv_version
+    \gset
 
--- app schema upgrade already applied with another script
-SELECT COUNT(*) = 0 AS psv_version_inconsistent
-  FROM PsvAppStatus
-  WHERE app = :'psv_app'
-    AND version = :psv_version
-    AND signature = :'psv_signature'
-  \gset
+  -- app schema upgrade already applied with another script
+  SELECT COUNT(*) = 0 AS psv_version_inconsistent
+    FROM PsvAppStatus
+    WHERE app = :'psv_app'
+      AND version = :psv_version
+      AND signature = :'psv_signature'
+    \gset
 
--- this script was used somewhere already
-SELECT COUNT(*) > 0 AS psv_signature_used
-  FROM PsvAppStatus
-  WHERE app = :'psv_app'
-    AND signature = :'psv_signature'
-  \gset
+  -- this script was used somewhere already
+  SELECT COUNT(*) > 0 AS psv_signature_used
+    FROM PsvAppStatus
+    WHERE app = :'psv_app'
+      AND signature = :'psv_signature'
+    \gset
 
-\if :psv_version_needed
-  \if :psv_signature_used
-    \warn # ERROR :psv_app :psv_version script already applied
-    \quit
-  \endif
-  \if :psv_dry
-    \echo # psv will apply :psv_app :psv_version
-    -- upgrade application new version for dry run
-    INSERT INTO PsvAppStatus(app, version, signature)
-      VALUES (:'psv_app', :psv_version, :'psv_signature');
-  \else
-    \echo # applying :psv_app :psv_version
+  \if :psv_version_needed
+    -- app version to be applied
+    \if :psv_do_catchup
+      \if :psv_dry
+        \echo # psv will catch-up :psv_app :psv_version
+      \else
+        \echo # psv catching-up :psv_app :psv_version
+      \endif
+      \if :psv_signature_used
+        -- will fail on UNIQUE(signature)
+        \warn # ERROR :psv_app :psv_version script already applied
+        \quit
+      \endif
+      -- do it anyway, possibly on the fake copy ?
+      INSERT INTO PsvAppStatus(app, version, signature)
+        VALUES (:'psv_app', :'psv_version', :'psv_signature');
+    \else
+      -- actual execution mode!
+      \if :psv_signature_used
+        -- will fail on UNIQUE(signature)
+        \warn # ERROR :psv_app :psv_version script already applied
+        \quit
+      \endif
 
-BEGIN;
+      \if :psv_dry
+        \echo # psv will apply :psv_app :psv_version
+        -- upgrade application new version for dry run, on the tmp table
+        INSERT INTO PsvAppStatus(app, version, signature)
+          VALUES (:'psv_app', :psv_version, :'psv_signature');
+      \else
+        \echo # applying :psv_app :psv_version
+
+  BEGIN;
 """
 
 FILE_FOOTER = r"""
-  -- upgrade application new version
-  INSERT INTO PsvAppStatus(app, version, signature)
-    VALUES (:'psv_app', :psv_version, :'psv_signature');
+    -- upgrade application new version
+    INSERT INTO PsvAppStatus(app, version, signature)
+      VALUES (:'psv_app', :psv_version, :'psv_signature');
 
-COMMIT;
+  COMMIT;
 
-  \endif
-\else
-  -- step not needed
-  \if :psv_version_inconsistent
-    \warn # ERROR :psv_app :psv_version inconsistent signature
-    \quit
-  \endif
-  \if :psv_dry
-    \echo # psv will skip :psv_app :psv_version
+      \endif
+    \endif
   \else
-    \echo # psv skipping :psv_app :psv_version
+    -- step not needed
+    \if :psv_version_inconsistent
+      \if :psv_do_catchup
+        \warn # WARN :psv_app :psv_version inconsistent signature
+        \if :psv_signature_used
+          \echo # ERROR cannot update :psv_app :psv_version, signature collision
+          \quit
+        \endif
+        \if :psv_dry
+          \echo # psv will update signature
+        \else
+          \echo # psv updating signature
+        \endif
+        UPDATE PsvAppStatus
+          SET signature = :'psv_signature'
+          WHERE app = :'pvs_app'
+            AND version = :'psv_version';
+      \else
+        \warn # ERROR :psv_app :psv_version inconsistent signature
+        \quit
+      \endif
+    \endif
+    \if :psv_dry
+      \echo # psv will skip :psv_app :psv_version
+    \else
+      \echo # psv skipping :psv_app :psv_version
+    \endif
   \endif
-\endif
 
-\unset psv_version
-\unset psv_signature
+  \unset psv_version
+  \unset psv_signature
 """
 
 SCRIPT_FOOTER = APP_VERSION + r"""
 \else
   -- do not apply steps
   \if :psv_dry
-    \echo # psv will skip all schema creation steps for command :psv_cmd
+    \echo # psv will skip all schema steps for command :psv_cmd
   \else
-    \echo # psv skipping all schema creation steps for command :psv_cmd
+    \echo # psv skipping all schema steps for command :psv_cmd
   \endif
 \endif
 
