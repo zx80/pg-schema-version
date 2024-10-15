@@ -123,7 +123,7 @@ check_cnt "1.d" 1
 check_run "1.e" 0 app "remove:wet"
 check_nop "1.f"
 
-# register dry/wet (note requires a prior init)
+# register/unregister dry/wet (note requires a prior init)
 check_nop "2.0"
 check_run "2.1" 0 app "register"
 check_nop "2.2"
@@ -141,8 +141,20 @@ check_ver "2.d" foo 0
 check_run "2.e" 0 bla "register:wet"
 check_cnt "2.f" 4
 check_ver "2.g" bla 0
-check_run "2.h" 0 app "remove:wet"
-check_nop "2.i"
+check_run "2.h" 0 bla "unregister"
+check_run "2.i" 0 bla "unregister:dry"
+check_cnt "2.j" 4
+check_run "2.k" 0 bla "unregister:wet"
+check_cnt "2.m" 3
+check_run "2.n" 0 foo "unregister:wet"
+check_cnt "2.o" 2
+check_run "2.p" 0 app "unregister:wet"
+check_cnt "2.q" 1
+check_run "2.r" 0 app "register:wet"
+check_cnt "2.s" 2
+check_ver "2.t" app 0
+check_run "2.u" 0 app "remove:wet"
+check_nop "2.v"
 
 # create
 check_nop "3.0"

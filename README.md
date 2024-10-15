@@ -11,7 +11,7 @@ The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-144%20✓-success)
+![Tests](https://img.shields.io/badge/tests-156%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -84,11 +84,13 @@ driven by `psql`-variable `psv` with value _command_:_moist_
 
 - available commands are (default is `run`):
   - `init` just initialize an empty psv infrastructure if needed.
-  - `register` register new application in the psv infrastructure if needed.
+  - `register` add new application to psv versioning if needed.
   - `run` apply required steps on an already registered application.
   - `create` do all of the above.
+  - `unregister` remove application from psv versioning if needed.
   - `remove` drop psv infrastructure.
   - `help` show some help.
+  - `status` show version status of applications.
 - available moistures are (default is `dry`):
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
@@ -115,12 +117,16 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
-- unregister?
+- reorder register conditions
 - catchup?
 - reverse?
 - version?
 - verbose mode?
 - add description?
+
+### ? on ?
+
+- add unregister command.
 
 ### 0.2 on 2024-10-15
 

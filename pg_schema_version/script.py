@@ -5,8 +5,8 @@ import logging
 import argparse
 from .utils import openfiles, bytes_hash, log
 
-# NOTE this could be a postgres extension?
-# FIXME skip begin/end which interact with plpgsql…
+# NOTE this could be a postgres extension? NO, just one table.
+# FIXME skipped begin/end keywords which interact with plpgsql…
 # TODO description can replace signature? added?
 # TODO verbose mode with log.info
 
@@ -85,16 +85,18 @@ SELECT
   END AS psv_mst
   \gset
 
--- set expected phases
+-- set expected phases as booleans
 SELECT
 
   -- check command validity
-  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'remove', 'help') AS psv_bad_cmd,
+  :'psv_cmd' NOT IN ('init', 'register', 'run', 'create', 'status', 'unregister', 'remove', 'help') AS psv_bad_cmd,
 
   -- whether to initialize the infra if needed
   :'psv_cmd' IN ('create', 'init')            AS psv_do_init,
   -- whether to register the application if needed
   :'psv_cmd' IN ('create', 'register')        AS psv_do_register,
+  -- whether to unregister the application
+  :'psv_cmd' IN ('unregister')                AS psv_do_unregister,
   -- whether to show all application status
   TRUE                                        AS psv_do_status,
   -- whether to run schema create steps
@@ -128,10 +130,10 @@ SELECT
   \echo # psql schema creation script for application {app}
   \echo # use "-v psv=command:moisture" to control the script behavior.
   \echo #
-  \echo # commands: init (create infra), register (add application to system),
+  \echo # commands: init (create infra), register (add application to versioning system),
   \echo #   run (apply needed schema steps, the default), status (show),
-  \echo #   remove (drop infra), help (this help).
-  \echo #   create stands for init + register + run.
+  \echo #   unregister (remove app from versioning system), remove (drop infra),
+  \echo #   help (this help); create stands for init + register + run.
   \echo #
   \echo # moistures: dry (default, just tell what will be done), wet (do it!).
   \echo #
@@ -299,6 +301,10 @@ SELECT COUNT(*) = 0 AS psv_app_ko
   WHERE app = :'psv_app'
   \gset
 
+--
+-- REGISTER
+--
+
 \if :psv_app_ko
   \if :psv_do_register
     \if :psv_dry
@@ -326,7 +332,32 @@ SELECT COUNT(*) = 0 AS psv_app_ko
   \endif
 \endif
 
--- consider each step
+--
+-- UNREGISTER
+--
+
+\if :psv_do_unregister
+  \if :psv_app_ko
+    \if :psv_dry
+      \echo # psv will skip unregistering unregistered :psv_app
+    \else
+      \echo # psv skipping unregistering unregistered :psv_app
+    \endif
+  \else
+    \if :psv_dry
+      \echo # psv will unregister :psv_app
+    \else
+      \echo # psv unregistering :psv_app
+      DELETE FROM PsvAppStatus WHERE app = :'psv_app';
+    \endif
+  \endif
+\endif
+
+--
+-- STEPS
+--
+
+-- consider each step in turn
 \if :psv_do_steps
   \if :psv_dry
     \echo # psv will consider applying all steps
