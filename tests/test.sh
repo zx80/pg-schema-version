@@ -101,7 +101,7 @@ check_nop "0.c"
 
 # infra dry/wet
 check_nop "1.0"
-check_run "1.1" 0 app "init"
+check_run "1.1" 0 app "init" -v
 check_nop "1.2"
 check_run "1.3" 0 app "init:dry"
 check_nop "1.4"

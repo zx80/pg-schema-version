@@ -523,6 +523,7 @@ def gen_psql_script(args):
     version = 0
     for fn, fh in openfiles(args.sql):
         version += 1
+        log.info(f"considering file {fn} for step {args.app} {version}")
         script = fh.read()
         # sanity checks
         if re.search(r"^\s*\\", script, re.M):
@@ -550,8 +551,9 @@ def gen_psql_script(args):
     return 0
 
 def psv():
+    """Actual Postgres schema version script."""
 
-    logging.basicConfig()
+    logging.basicConfig(level=logging.WARN)
 
     ap = argparse.ArgumentParser(
             prog="pg-schema-version",
@@ -559,6 +561,8 @@ def psv():
             epilog="All software have bugs…")
     ap.add_argument("-d", "--debug", action="store_true",
                     help="debug mode")
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="verbose mode")
     ap.add_argument("-a", "--app", type=str, default="app",
                     help="application name, default is 'app'")
     ap.add_argument("-s", "--schema", type=str, default="public",
@@ -579,6 +583,8 @@ def psv():
 
     if args.debug:
         log.setLevel(logging.DEBUG)
+    elif args.verbose:
+        log.setLevel(logging.INFO)
 
     if isinstance(args.out, str):
         if os.path.exists(args.out):
@@ -586,4 +592,5 @@ def psv():
             return 3
         args.out = open(args.out, "w")
 
+    log.info(f"generating schema construction script for applicaton {args.app}")
     return gen_psql_script(args)

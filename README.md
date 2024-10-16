@@ -121,7 +121,6 @@ Test your scripts with care before applying it to production data.
 
 - reverse?
 - version?
-- verbose mode?
 - add description?
 - write a tutorial
 - write recipes
@@ -131,6 +130,7 @@ Test your scripts with care before applying it to production data.
 - add unregister command
 - add catchup command
 - add filename field
+- add verbose option
 - refactor registration
 
 ### 0.2 on 2024-10-15
