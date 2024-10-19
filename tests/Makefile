@@ -3,7 +3,7 @@ SHELL   = /bin/bash
 
 .PHONY: clean
 clean:
-	$(RM) .coverage
+	$(RM) .coverage bla.sql foo.sql acme.sql
 
 .PHONY: check.commands
 check.commands:
@@ -21,3 +21,7 @@ check.coverage: clean check.commands
 	export TEST_PSV="coverage run -a ../venv/bin/pg-schema-version"
 	$(MAKE) check.test
 	coverage report --show-missing --precision=1 --fail-under=100.0
+
+# generate scripts
+%.sql:
+	pg-schema-version -a $* $*_*.sql > $@
