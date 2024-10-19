@@ -1,4 +1,4 @@
--- psv: Acme application add more types
+-- psv: Acme application with more types
 
 INSERT INTO AcmeType(atype) VALUES
   ('wow'),

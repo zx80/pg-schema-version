@@ -103,7 +103,8 @@ SELECT
 SELECT
   CASE WHEN :psv_cmd_version = -1 THEN 'latest'
        ELSE (:psv_cmd_version)::TEXT
-  END AS psv_cmd_version_display
+  END AS psv_cmd_version_display,
+  current_database() AS psv_database
   \gset
 
 -- set expected phases as booleans
@@ -171,9 +172,9 @@ SELECT
 \endif
 
 \if :psv_dry
-  \echo # psv dry :psv_cmd for :psv_app, enable with -v psv=:psv_cmd::psv_cmd_version_display:wet
+  \echo # psv dry :psv_cmd for :psv_app on :psv_database, enable with -v psv=:psv_cmd::psv_cmd_version_display:wet
 \else
-  \echo # psv wet :psv_cmd for :psv_app
+  \echo # psv wet :psv_cmd for :psv_app on :psv_database
 \endif
 
 --

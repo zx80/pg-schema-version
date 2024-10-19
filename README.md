@@ -60,12 +60,12 @@ Several application can share the same setup.
    # first time MUST use command create
    psql -v psv=create acme < acme.sql
    # psv for application acme
-   # psv dry create for acme, enable with -v psv=create:latest:wet
+   # psv dry create for acme on acme, enable with -v psv=create:latest:wet
    # psv will create infra, register acme and execute all steps
 
    psql -v psv=create:wet acme < acme.sql
    # psv for application acme
-   # psv wet create for acme
+   # psv wet create for acme on acme
    # psv creating infra
    # psv registering acme
    # psv considering applying steps
@@ -79,7 +79,7 @@ Several application can share the same setup.
    # on rerun, do nothing
    psql -v psv=wet acme < acme.sql
    # psv for application acme
-   # psv wet apply for acme
+   # psv wet apply for acme on acme
    # psv skipping acme registration
    # psv considering applying steps
    # psv acme version: 3
@@ -91,12 +91,13 @@ Several application can share the same setup.
 
    # show current status
    psql -v psv=status acme < acme.sql
-   ┌──────┬─────────┬─────────────────────────────────┐
-   │ app  │ version │           description           │
-   ├──────┼─────────┼─────────────────────────────────┤
-   │ acme │       3 │ Acme application add more types │
-   │ psv  │       0 │ •                               │
-   └──────┴─────────┴─────────────────────────────────┘
+   # …
+   ┌──────┬─────────┬──────────────────────────────────┐
+   │ app  │ version │           description            │
+   ├──────┼─────────┼──────────────────────────────────┤
+   │ acme │       3 │ Acme application with more types │
+   │ psv  │       0 │ •                                │
+   └──────┴─────────┴──────────────────────────────────┘
    ```
 
 ## Features
