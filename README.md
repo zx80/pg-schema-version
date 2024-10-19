@@ -100,6 +100,11 @@ Several application can share the same setup.
    └──────┴─────────┴──────────────────────────────────┘
    ```
 
+   | app  | version | description                      |
+   |---   |     ---:|---                               |
+   | acme |       3 | Acme application with more types |
+   | psv  |       9 | •                                |
+
 ## Features
 
 The python script generates a reasonably safe re-entrant idempotent SQL script
