@@ -20,6 +20,12 @@ Several application can share the same setup.
 
 ## Usage
 
+0. Install from PyPi, e.g. with `pip`:
+
+   ```shell
+   pip install pg-schema-version
+   ```
+
 1. Write a sequence of incremental postgres SQL data definition scripts
 
    - initial schema creation `create_000.sql`
@@ -135,6 +141,10 @@ Always test your scripts with care before applying it to production data.
 - reverse?
 - write a tutorial
 - write recipes
+
+### ? on ?
+
+- improve documentation
 
 ### 0.3 on 2024-10-19
 
