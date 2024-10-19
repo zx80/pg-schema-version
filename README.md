@@ -147,6 +147,9 @@ They can be circumvented with option `--trust-scripts`.
 
 Always test your scripts with care before applying it to production data.
 
+Beware that `psql` can execute arbitrary shell commands in your name with
+`\!`.
+
 ## Versions
 
 ### TODO
