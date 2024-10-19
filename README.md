@@ -107,17 +107,23 @@ description is recorded and shown on command `status`.
 
 ## Caveats
 
+Only dream of running the generated SQL scripts if you have a working (i.e.
+actually tested) backup of your data.
+
+Always run _dry_  and read the output carefully before running _wet_.
+
 There is no magic involved, you can still shot yourself in the foot, although
 with an effort.
 
-To be safe, SQL schema creation scripts must **NOT**:
+For safety, SQL schema creation scripts must **NOT**:
+
 - include backslash commands which may interfere with the script owns.
 - include SQL transaction commands.
 
-Imperfect checks are performed to detect the above issues.
+Imperfect checks are performed to try to detect the above issues.
 They can be circumvented with option `--trust-scripts`.
 
-Test your scripts with care before applying it to production data.
+Always test your scripts with care before applying it to production data.
 
 ## Versions
 
@@ -139,6 +145,7 @@ Test your scripts with care before applying it to production data.
 - show description on status
 - escape schema and table identifiers
 - refactor application registration
+- improve documentation
 
 ### 0.2 on 2024-10-15
 
