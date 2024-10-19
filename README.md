@@ -20,13 +20,13 @@ Several application can share the same setup.
 
 ## Usage
 
-0. Install from PyPi, e.g. with `pip`:
+1. Install from PyPi, e.g. with `pip`:
 
    ```shell
    pip install pg-schema-version
    ```
 
-1. Write a sequence of incremental postgres SQL data definition scripts
+2. Write a sequence of incremental postgres SQL data definition scripts
 
    - initial schema creation `create_000.sql`
 
@@ -48,13 +48,13 @@ Several application can share the same setup.
      INSERT INTO AcmeType(atype) VALUES ('wow'), ('incredible');
      ```
 
-2. Generate a `psql`-script from these for the target application:
+3. Generate a `psql`-script from these for the target application:
 
    ```shell
    pg-schema-version -a acme create_*.sql > acme.sql
    ```
 
-3. Execute the script against a database to bring its schema up to date.
+4. Execute the script against a database to bring its schema up to date.
 
    ```shell
    # first time MUST use command create
