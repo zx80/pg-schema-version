@@ -41,7 +41,7 @@ SCRIPT_HEADER = r"""--
 -- Control the script behavior by setting psql-variable "psv",
 -- with the full format command:version:moisture.
 --
--- Available commands: init, register, run (default), create, status, unregister, remove, help, catchup.
+-- Available commands: init, register, apply (default), create, status, unregister, remove, help, catchup.
 -- Available moistures: dry (default), wet.
 -- Version is the target version, default is latest.
 
@@ -72,8 +72,8 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 \if :{{?psv}}
   -- psv set from command line
 \else
-  -- default command is to run the script (no init nor register)
-  \set psv run:latest:dry
+  -- default command is to apply steps (no init nor register)
+  \set psv apply:latest:dry
   \echo # psv set to :psv, change with -v psv=…
 \endif
 
@@ -81,7 +81,7 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 SELECT
   CASE
     WHEN :'psv' ~ ':' THEN SPLIT_PART(:'psv', ':', 1)
-    WHEN :'psv' IN ('dry', 'wet') THEN 'run'
+    WHEN :'psv' IN ('dry', 'wet') THEN 'apply'
     ELSE :'psv'
   END AS psv_cmd,
   CASE
@@ -108,7 +108,7 @@ SELECT
 SELECT
 
   -- check command validity
-  :'psv_cmd' NOT IN ('init', 'register', 'run',
+  :'psv_cmd' NOT IN ('init', 'register', 'apply',
       'create', 'status', 'unregister', 'remove',
       'help', 'catchup')                             AS psv_bad_cmd,
 
@@ -120,8 +120,8 @@ SELECT
   :'psv_cmd' IN ('unregister')                       AS psv_do_unregister,
   -- whether to show all application status
   TRUE                                               AS psv_do_status,
-  -- whether to run schema create steps
-  :'psv_cmd' IN ('create', 'run', 'catchup')         AS psv_do_steps,
+  -- whether to execute schema create steps
+  :'psv_cmd' IN ('create', 'apply', 'catchup')       AS psv_do_apply,
   -- whether to remove the infrastructure
   :'psv_cmd' IN ('remove')                           AS psv_do_remove,
   -- whether to show help
@@ -138,7 +138,7 @@ SELECT
 
 -- check that command is valid
 \if :psv_bad_cmd
-  \warn # ERROR psv unexpected command :psv_cmd, expecting: init register run create status remove
+  \warn # ERROR psv unexpected command :psv_cmd, expecting: init register apply create status remove help catchup
   \quit
 \endif
 \unset psv_bad_cmd
@@ -154,9 +154,9 @@ SELECT
   \echo # use "-v psv=command:version:moisture" to control the script behavior.
   \echo #
   \echo # commands: init (create infra), register (add application to versioning system),
-  \echo #   run (apply needed schema steps, the default), status (show),
+  \echo #   apply (execute needed schema steps, the default), status (show),
   \echo #   unregister (remove app from versioning system), remove (drop infra),
-  \echo #   help (this help); create stands for init + register + run.
+  \echo #   help (this help); create stands for init + register + apply.
   \echo #
   \echo # version: target version, default is latest.
   \echo #
@@ -187,12 +187,12 @@ SELECT COUNT(*) = 0 AS psv_no_infra
   \if :psv_no_infra
     \if :psv_dry
       -- output a precise message before quitting
-      \if :psv_do_steps
+      \if :psv_do_apply
          \if :psv_do_register
            \echo # psv will create infra, register :psv_app and execute all steps
          \else
            -- UNREACHABLE
-           \warn # INTERNAL ERROR should not init and run without registering
+           \warn # INTERNAL ERROR should not init and apply without registering
            \quit
          \endif
       \else
@@ -350,7 +350,7 @@ SELECT COUNT(*) = 0 AS psv_app_ko
   \endif
 \else
   \if :psv_app_ko
-    \if :psv_do_steps
+    \if :psv_do_apply
       \warn # ERROR :psv_app registration needed
       \quit
     -- else it will not be needed
@@ -403,7 +403,7 @@ SELECT :psv_cmd_version <> -1 AND COUNT(*) >= 1 AS psv_no_version_needed
 \endif
 
 -- consider each step in turn
-\if :psv_do_steps
+\if :psv_do_apply
 
   -- display helpers
   \if :psv_do_catchup

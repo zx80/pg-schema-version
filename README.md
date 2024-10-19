@@ -64,23 +64,23 @@ Several application can share the same setup.
    # psv script will create infra, register acme and execute all steps
 
    psql -v psv=create:wet < acme.sql
-   # psv wet run for acme
+   # psv wet create for acme
    # psv creating psv infra
    # psv registering app acme
    # psv applying acme 1
    # psv applying acme 2
    # psv applying acme 3
    # psv acme version: 3
-   # psv wet run for acme done
+   # psv wet create for acme done
 
    # on rerun, do nothing
    psql -v psv=wet < acme.sql
-   # psv wet run for app acme
+   # psv wet apply for app acme
    # psv skipping acme 1
    # psv skipping acme 2
    # psv skipping acme 3
    # psv acme version: 3
-   # psv wet run for acme done
+   # psv wet apply for acme done
    ```
 
 ## Features
@@ -88,12 +88,12 @@ Several application can share the same setup.
 The python script generates a reasonably safe re-entrant idempotent SQL script
 driven by `psql`-variable `psv` with value _command_:_version_:_moist_
 
-- available commands are (default is `run`):
-  - `init` just initialize an empty psv infrastructure if needed.
-  - `register` add new application to psv versioning if needed.
-  - `run` apply required steps on an already registered application.
-  - `create` do init, register and run.
-  - `unregister` remove application from psv versioning if needed.
+- available commands are (default is `apply`):
+  - `init` just initialize an empty psv infrastructure.
+  - `register` add new application to psv versioning.
+  - `apply` execute required steps on an already registered application.
+  - `create` do the 3 phases above: init, register and apply.
+  - `unregister` remove application from psv versioning.
   - `remove` drop psv infrastructure.
   - `help` show some help.
   - `status` show version status of applications.
@@ -138,13 +138,13 @@ Always test your scripts with care before applying it to production data.
 - update readme example from actual outputs
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
-- rename _run_ phase? apply? exec?
 - reverse?
 - write a tutorial
 - write recipes
 
 ### ? on ?
 
+- rename `run` to `apply`
 - improve documentation
 - improve tests about descriptions
 

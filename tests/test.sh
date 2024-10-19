@@ -242,23 +242,23 @@ check_ver "4.o" app 4
 check_run "4.p" 0 app "remove:wet"
 check_nop "4.q"
 
-# run
+# apply
 check_nop "5.0"
-check_run "5.1" 0 app "run" bla_1.sql bla_2.sql
-check_run "5.2" 0 app "run:dry" bla_1.sql bla_2.sql
+check_run "5.1" 0 app "apply" bla_1.sql bla_2.sql
+check_run "5.2" 0 app "apply:dry" bla_1.sql bla_2.sql
 check_nop "5.3"
-check_run "5.4" 0 app "run:wet" bla_1.sql bla_2.sql  # KO, need init and register
+check_run "5.4" 0 app "apply:wet" bla_1.sql bla_2.sql  # KO, need init and register
 check_nop "5.5"
 check_run "5.6" 0 app "init:wet" bla_1.sql bla_2.sql
 check_cnt "5.7" 1
-check_run "5.8" 0 app "run:wet" bla_1.sql bla_2.sql  # KO, need register
+check_run "5.8" 0 app "apply:wet" bla_1.sql bla_2.sql  # KO, need register
 check_cnt "5.9" 1
 check_run "5.a" 0 app "register:wet" bla_1.sql bla_2.sql
 check_cnt "5.b" 2
 check_ver "5.c" app 0
-check_run "5.d" 0 app "run:wet" bla_1.sql bla_2.sql
+check_run "5.d" 0 app "apply:wet" bla_1.sql bla_2.sql
 check_ver "5.e" app 2
-check_run "5.f" 0 app "run:wet" bla_1.sql bla_3.sql bla_2.sql  # KO
+check_run "5.f" 0 app "apply:wet" bla_1.sql bla_3.sql bla_2.sql  # KO
 check_ver "5.g" app 2
 check_run "5.h" 0 app "remove:wet"
 check_nop "5.i"
@@ -357,21 +357,21 @@ check_run "9.4" 0 bla "create:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_cnt "9.5" 2
 check_ver "9.6" psv 0
 check_ver "9.7" bla 0
-check_run "9.8" 0 bla "run:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.8" 0 bla "apply:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.9" bla 0
 # one step at a time, check version and descriptions
-check_run "9.a" 0 bla "run:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.a" 0 bla "apply:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.b" bla 0
-check_run "9.c" 0 bla "run:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.c" 0 bla "apply:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.d" bla 1
 check_des "9.e" bla 1 "application bla initial create"
-check_run "9.f" 0 bla "run:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.f" 0 bla "apply:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.g" bla 2
 check_des "9.h" bla 2 "application bla first upgrade"
-check_run "9.i" 0 bla "run:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.i" 0 bla "apply:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.j" bla 3
 check_des "9.k" bla 3 "bla schema step 3"
-check_run "9.l" 0 bla "run:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.l" 0 bla "apply:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.m" bla 4
 # all descriptions are there
 check_des "9.n" bla 1 "application bla initial create"
