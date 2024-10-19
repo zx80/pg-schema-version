@@ -154,7 +154,12 @@ Always test your scripts with care before applying it to production data.
 
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
-- reverse?
+- reverse? check?
+  - each file contains a mandatory declaration `-- psv: …`
+  - `foo +n` `foo =n` `foo -n` : app foo schema n, check n, reverse n.
+  - option `-K --keep` to keep file order
+  - `-a foo` is used to check the application name
+  - must check that a continuous path exists before applying anything!
 - write a tutorial
 - write recipes
 
