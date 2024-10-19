@@ -173,6 +173,10 @@ Always test your scripts with care before applying it to production data.
 
 This code is [Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
 
+See [online documentation](https://zx80.github.io/pg-schema-version/).
+Sources and issues are on [GitHub](https://github.com/zx80/pg-schema-version).
+Packages are distributed from [PyPi](https://pypi.org/project/pg-schema-version/).
+
 All software has bug, this is software, hence…
 Beware that you may lose your hairs or your friends because of it.
 If you like it, feel free to send a postcard to the author.
