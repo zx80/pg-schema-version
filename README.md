@@ -156,12 +156,13 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
-- reverse? check?
+- reverse?
   - each file contains a mandatory declaration `-- psv: …`
-  - `foo +n` `foo =n` `foo -n` : app foo schema n, check n, reverse n.
+  - `foo +n` `foo -n` : app foo schema n, reverse n.
   - option `-K --keep` to keep file order
   - `-a foo` is used to check the application name
   - must check that a continuous path exists before applying anything!
+- check? `foo =n …`?
 - write a tutorial
 - write recipes
 
