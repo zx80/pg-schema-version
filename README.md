@@ -135,6 +135,7 @@ Always test your scripts with care before applying it to production data.
 
 ### TODO
 
+- update readme example from actual outputs
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
 - rename _run_ phase? apply? exec?
