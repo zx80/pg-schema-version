@@ -26,6 +26,9 @@ clean.dev: clean clean.venv
 # environment
 #
 
+.PHONY: dev
+dev: venv.dev
+
 venv:
 	$(PYTHON) -m venv venv
 	$(PIP) install -e .
