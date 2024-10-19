@@ -11,7 +11,7 @@ The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-193%20✓-success)
+![Tests](https://img.shields.io/badge/tests-209%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -119,7 +119,6 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
-- escape object names (schema and table)
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
 - rename _run_ phase? apply? exec?
@@ -131,11 +130,12 @@ Test your scripts with care before applying it to production data.
 
 ### ? on ?
 
-- add setting a version target for a run
 - add unregister and catchup commands
+- add setting a version target for a run
 - add filename field
 - add verbose option
-- refactor registration
+- escape schema and table identifiers
+- refactor application registration
 
 ### 0.2 on 2024-10-15
 

@@ -45,26 +45,40 @@ function check_que()
   test_result "$name" "$n" "$number"
 }
 
+function sq()
+{
+  local s="$1"
+  echo ${s//\'/\\\'}
+}
+
 function check_nop()
 {
-  local name="$1"
-  shift 1
-  check_que "nope $name" 0 "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE tablename='psv_app_status'"
+  local name="$1" table="${2:-psv_app_status}"
+  shift 2
+  table=$(sq "$table")
+  check_que "nope $name" 0 "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE tablename='$table'"
+}
+
+function dq()
+{
+  local s="$1"
+  echo ${s//\"/\\\"}
 }
 
 function check_cnt()
 {
-  local name="$1" number="$2"
-  shift 2
-  check_que "count $name" "$number" "SELECT COUNT(DISTINCT app) FROM public.psv_app_status"
+  local name="$1" number="$2" schema="${3:-public}" table="${4:-psv_app_status}"
+  shift 4
+  schema=$(dq "$schema") table=$(dq "$table")
+  check_que "count $name" "$number" "SELECT COUNT(DISTINCT app) FROM \"$schema\".\"$table\""
 }
 
 function check_ver()
 {
-  local name="$1" app="$2" version="$3"
-  shift 3
-  check_que "version $name" "$version" \
-    "SELECT MAX(version) FROM public.psv_app_status WHERE app='$app'"
+  local name="$1" app="$2" version="$3" schema="${4:-public}" table="${5:-psv_app_status}"
+  shift 5
+  schema=$(dq "$schema") table=$(dq "$table")
+  check_que "version $name" "$version" "SELECT MAX(version) FROM \"$schema\".\"$table\" WHERE app='$app'"
 }
 
 function check_psv()
@@ -271,10 +285,27 @@ check_nop "7.e"
 # various options and behavior
 $pg -c "CREATE SCHEMA psv_test_schema" $db
 check_nop "8.0"
-check_run "8.1" 0 bla "init:wet"   -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
-check_run "8.2" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
-check_run "8.3" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
-check_run "8.4" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_nop "8.1" psv_test_schema psv_test_table
+check_run "8.2" 0 bla "init:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_cnt "8.3" 1 psv_test_schema psv_test_table
+check_run "8.4" 0 bla "register:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_cnt "8.5" 2 psv_test_schema psv_test_table
+check_ver "8.6" psv 0 psv_test_schema psv_test_table
+check_ver "8.7" bla 0 psv_test_schema psv_test_table
+check_run "8.8" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_nop "8.9" psv_test_schema psv_test_table
+check_run "8.A" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_cnt "8.B" 2 psv_test_schema psv_test_table
+check_ver "8.C" bla 3 psv_test_schema psv_test_table
+check_run "8.D" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_nop "8.E" psv_test_schema psv_test_table
+# more fantasy
+check_run "8.F" 0 bla "create:wet" -s psv_test_schema -t "let's run versions" bla_1.sql bla_2.sql
+check_cnt "8.G" 2 psv_test_schema "let's run versions"
+check_ver "8.H" bla 2 psv_test_schema "let's run versions"
+check_run "8.I" 0 bla "remove:wet" -s psv_test_schema -t "let's run versions"
+check_nop "8.J" psv_test_schema "let's run versions"
+check_nop "8.K"
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
 # content errors and ignore

@@ -56,6 +56,10 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 \endif
 \unset psv_pg_ko
 
+-- psv infra names
+\set psv_schema {schema}
+\set psv_table {table}
+
 -- application name
 \if :{{?psv_app}}
   \warn # WARN application name overriden to :psv_app
@@ -175,8 +179,8 @@ SELECT
 --
 SELECT COUNT(*) = 0 AS psv_no_infra
   FROM pg_catalog.pg_tables
-  WHERE schemaname = '{schema}'
-    AND tablename = '{table}'
+  WHERE schemaname = :'psv_schema'
+    AND tablename = :'psv_table'
   \gset
 
 \if :psv_do_init
@@ -207,7 +211,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 BEGIN;
 
 -- create psv application status table
-CREATE TABLE {schema}.{table}(
+CREATE TABLE :"psv_schema".:"psv_table"(
   id SERIAL PRIMARY KEY,
   app TEXT NOT NULL DEFAULT 'psv',
   version INTEGER NOT NULL DEFAULT 0,
@@ -220,7 +224,7 @@ CREATE TABLE {schema}.{table}(
 );
 
 -- register itself
-INSERT INTO {schema}.{table} DEFAULT VALUES;
+INSERT INTO :"psv_schema".:"psv_table" DEFAULT VALUES;
 
 COMMIT;
 
@@ -273,7 +277,7 @@ COMMIT;
   \echo # psv all applications status
 
   SELECT app, MAX(version) AS version
-    FROM {schema}.{table}
+    FROM :"psv_schema".:"psv_table"
     GROUP BY 1
     ORDER BY 1;
 
@@ -287,7 +291,7 @@ COMMIT;
   \if :psv_dry
     \echo # psv will drop its infra if it exists
   \else
-    DROP TABLE IF EXISTS {schema}.{table};
+    DROP TABLE IF EXISTS :"psv_schema".:"psv_table";
   \endif
   -- bye bye, nothing else to do!
   \quit
@@ -299,11 +303,11 @@ COMMIT;
 \if :psv_dry
   -- copy
   CREATE TEMPORARY TABLE PsvAppStatus
-    AS SELECT * FROM {schema}.{table};
+    AS SELECT * FROM :"psv_schema".:"psv_table";
 \else
   -- reference
   CREATE TEMPORARY VIEW PsvAppStatus
-    AS SELECT * FROM {schema}.{table};
+    AS SELECT * FROM :"psv_schema".:"psv_table";
 \endif
 
 -- self check for possible future upgrades
@@ -565,13 +569,16 @@ SCRIPT_FOOTER = APP_VERSION + r"""
 -- end of {app} psv script
 """
 
+def sqesc(s: str):
+    return "'" + s.replace("'", "''") + "'"
+
 def gen_psql_script(args):
     """Generate an idempotent psql script."""
 
     def output(s: str):
         print(s, file=args.out, end="")
 
-    output(SCRIPT_HEADER.format(app=args.app, schema=args.schema, table=args.table))
+    output(SCRIPT_HEADER.format(app=args.app, schema=sqesc(args.schema), table=sqesc(args.table)))
 
     version = 0
     for fn, fh in openfiles(args.sql):
@@ -599,7 +606,7 @@ def gen_psql_script(args):
         output(script)
         output(FILE_FOOTER)
 
-    output(SCRIPT_FOOTER.format(app=args.app, schema=args.schema, table=args.table))
+    output(SCRIPT_FOOTER.format(app=args.app))
 
     return 0
 
