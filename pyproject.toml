@@ -32,3 +32,5 @@ pg-schema-version = "pg_schema_version:psv"
 [project.urls]
 repository = "https://github.com/zx80/pg-schema-version"
 documentation = "https://zx80.github.io/pg-schema-version/"
+issues = "https://github.com/zx80/pg-schema-version/issues"
+package = "https://pypi.org/project/pg-schema-version"
