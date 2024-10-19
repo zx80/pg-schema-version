@@ -80,7 +80,7 @@ Several application can share the same setup.
 ## Features
 
 The python script generates a reasonably safe re-entrant idempotent SQL script
-driven by `psql`-variable `psv` with value _command_:_moist_
+driven by `psql`-variable `psv` with value _command_:_version_:_moist_
 
 - available commands are (default is `run`):
   - `init` just initialize an empty psv infrastructure if needed.
@@ -93,6 +93,7 @@ driven by `psql`-variable `psv` with value _command_:_moist_
   - `status` show version status of applications.
   - `catchup` update application version status without actually executing steps
     (imply init and register).
+- versions are integers designating the target step, default is `latest`.
 - available moistures are (default is `dry`):
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
@@ -100,6 +101,9 @@ driven by `psql`-variable `psv` with value _command_:_moist_
 The only way is forward: there is no provision to go back to a previous
 state. However, note that schema steps are performed in a transaction, so
 that it can only fail one full step at a time.
+
+If a script contains a special `-- psv: some description` comment, the
+description is recorded and shown on command `status`.
 
 ## Caveats
 
@@ -125,7 +129,6 @@ Test your scripts with care before applying it to production data.
 - reverse?
 - write a tutorial
 - write recipes
-- document version and description
 
 ### ? on ?
 
