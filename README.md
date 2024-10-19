@@ -119,6 +119,7 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
+- rename _run_ phase? apply? exec?
 - reverse?
 - version?
 - add description?
