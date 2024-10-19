@@ -1,4 +1,14 @@
 #! /bin/bash
+#
+# psv test script
+#
+# Environment variables:
+#
+# - TEST_DB: test database (WILL BE dropped, recreated and dropped again).
+# - TEST_PSV: psv command.
+# - TEST_PSQL: psql command.
+# - TEST_PG_OPTS: postgres command options for psql, createdb and dropdb.
+# - TEST_STOP: stop on first error.
 
 # override from the environment
 db=${TEST_DB:-pg_schema_version_test}
@@ -258,15 +268,7 @@ check_que "7.c" 0 "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE tablename = '
 check_run "7.d" 0 app "remove:wet"
 check_nop "7.e"
 
-# content errors and ignore
-check_psv "bs command in script" 1 app bad_bs.sql
-check_psv "bs command in script" 0 app -T bad_bs.sql
-check_psv "sql command in script" 2 app bad_sql.sql
-check_psv "sql command in script" 0 app -T bad_sql.sql
-
-# various options
-echo "-- bla 2 script" | check_psv "standard input" 0 app --debug bla_1.sql - bla_3.sql
-
+# various options and behavior
 $pg -c "CREATE SCHEMA psv_test_schema" $db
 check_nop "8.0"
 check_run "8.1" 0 bla "init:wet"   -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
@@ -275,15 +277,50 @@ check_run "8.3" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sq
 check_run "8.4" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
+# content errors and ignore
+check_psv "8.5 bs command in script" 1 app bad_bs.sql
+check_psv "8.6 bs command in script" 0 app -T bad_bs.sql
+check_psv "8.7 sql command in script" 2 app bad_sql.sql
+check_psv "8.8 sql command in script" 0 app -T bad_sql.sql
+
+# output overwrite
 rm -f tmp.out
-check_psv "9.0 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
-check_psv "9.1 output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.9 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.A output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
 
 # help
-check_run "A.0" 0 app "help"
-check_run "A.1" 0 app "help:dry"
-check_run "A.2" 0 app "help:wet"
+check_run "8.B" 0 app "help"
+check_run "8.C" 0 app "help:dry"
+check_run "8.D" 0 app "help:wet"
+
+echo "-- bla 2 script" | check_psv "8.E standard input" 0 app --debug bla_1.sql - bla_3.sql
+
+# with target version
+check_nop "9.0"
+check_run "9.1" 0 app "create:1" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.2" 0 app "create:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_nop "9.3"
+# simple register
+check_run "9.4" 0 app "create:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_cnt "9.5" 2
+check_ver "9.6" psv 0
+check_ver "9.7" app 0
+check_run "9.8" 0 app "run:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.9" app 0
+# one step at a time
+check_run "9.A" 0 app "run:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.B" app 0
+check_run "9.C" 0 app "run:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.D" app 1
+check_run "9.E" 0 app "run:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.F" app 2
+check_run "9.G" 0 app "run:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.H" app 3
+check_run "9.I" 0 app "run:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.J" app 4
+check_run "9.K" 0 app "remove:wet"
+check_nop "9.L"
 
 dropdb $pgopts $db
 
