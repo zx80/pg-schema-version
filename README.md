@@ -97,7 +97,7 @@ Several application can share the same setup.
    | app  | version | description                      |
    |---   |     ---:|---                               |
    | acme |       3 | Acme application with more types |
-   | psv  |       9 | •                                |
+   | psv  |       0 | •                                |
 
 ## Features
 
