@@ -36,6 +36,8 @@ SCRIPT_HEADER = r"""--
 -- Edit with care, or possibly do not edit…
 -- Run with extra care, after ensuring that you have a working backup.
 --
+-- example: psql -v psv=apply:dry -f {app}.sql
+--
 -- See: https://github.com/zx80/pg-schema-version
 --
 -- Control the script behavior by setting psql-variable "psv",
