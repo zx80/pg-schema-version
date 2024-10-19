@@ -31,14 +31,20 @@ venv:
 	$(PIP) install -e .
 
 .PHONY: venv.dev
-venv.dev: venv
+venv.dev: venv/.dev
+
+venv/.dev: venv
 	source venv/bin/activate
 	$(PIP) install -e .[dev]
+	touch $@
 
 .PHONY: venv.pub
-venv.pub: venv
+venv.pub: venv/.pub
+
+venv/.pub: venv
 	source venv/bin/activate
 	$(PIP) install -e .[pub]
+	touch $@
 
 #
 # checks
