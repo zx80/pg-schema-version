@@ -126,14 +126,14 @@ Test your scripts with care before applying it to production data.
 - write a tutorial
 - write recipes
 - document version and description
-- show description field on status?
 
 ### ? on ?
 
 - add unregister and catchup commands
 - add setting a version target for a run
-- add filename and description field
+- add filename and description fields
 - add verbose option
+- show description on status
 - escape schema and table identifiers
 - refactor application registration
 

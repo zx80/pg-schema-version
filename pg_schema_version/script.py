@@ -277,9 +277,13 @@ COMMIT;
   -- show all app versions
   \echo # psv all applications status
 
-  SELECT app, MAX(version) AS version
-    FROM :"psv_schema".:"psv_table"
-    GROUP BY 1
+  WITH app_version AS (
+    SELECT app, MAX(version) AS version
+      FROM :"psv_schema".:"psv_table"
+      GROUP BY 1)
+  SELECT app, version, description
+    FROM app_version
+    JOIN :"psv_schema".:"psv_table" USING (app, version)
     ORDER BY 1;
 
 \endif
@@ -602,14 +606,14 @@ def gen_psql_script(args):
                 log.error(f"script {fn} contains a transaction command")
                 return 2
         if m := re.search(r"^\s*--\s*psv\s*:\s*(.*?)\s*$", script, re.I|re.M):
-            description = squote(m.group(1))
+            description = m.group(1)
         else:
-            description = "schema step $version"
+            description = f"{args.app} schema step {version}"
         data = script.encode(args.encoding)
         signature = bytes_hash(args.hash, data)
         # output psql code
         output(FILE_HEADER.format(file=fn, version=version,
-                                  signature=signature, description=description,
+                                  signature=signature, description=squote(description),
                                   filename=fn.split("/")[-1]))
         output(script)
         output(FILE_FOOTER)
