@@ -123,16 +123,16 @@ Test your scripts with care before applying it to production data.
 - default phase? status? run? help?
 - rename _run_ phase? apply? exec?
 - reverse?
-- add description?
 - write a tutorial
 - write recipes
-- document version
+- document version and description
+- show description field on status?
 
 ### ? on ?
 
 - add unregister and catchup commands
 - add setting a version target for a run
-- add filename field
+- add filename and description field
 - add verbose option
 - escape schema and table identifiers
 - refactor application registration

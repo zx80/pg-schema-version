@@ -217,6 +217,7 @@ CREATE TABLE :"psv_schema".:"psv_table"(
   version INTEGER NOT NULL DEFAULT 0,
   signature TEXT DEFAULT NULL,
   filename TEXT DEFAULT NULL,
+  description TEXT DEFAULT NULL,
   created TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE(app, version),
   UNIQUE(signature),
@@ -423,6 +424,7 @@ FILE_HEADER = r"""
   \set psv_filename {filename}
   \set psv_version {version}
   \set psv_signature {signature}
+  \set psv_description {description}
 
   -- app schema upgrade already applied
   SELECT COUNT(*) = 0 AS psv_version_needed
@@ -482,8 +484,8 @@ FILE_HEADER = r"""
         \quit
       \endif
       -- do it anyway, possibly on the fake copy ?
-      INSERT INTO PsvAppStatus(app, version, signature, filename)
-        VALUES (:'psv_app', :'psv_version', :'psv_signature', :'psv_filename');
+      INSERT INTO PsvAppStatus(app, version, signature, filename, description)
+        VALUES (:'psv_app', :'psv_version', :'psv_signature', :'psv_filename', :'psv_description');
     \else
       -- actual execution mode!
       \if :psv_signature_used
@@ -495,8 +497,8 @@ FILE_HEADER = r"""
       \if :psv_dry
         \echo # psv will apply :psv_app :psv_version
         -- upgrade application new version for dry run, on the tmp table
-        INSERT INTO PsvAppStatus(app, version, signature, filename)
-          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename');
+        INSERT INTO PsvAppStatus(app, version, signature, filename, description)
+          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description');
       \else
         \echo # applying :psv_app :psv_version
 
@@ -505,8 +507,8 @@ FILE_HEADER = r"""
 
 FILE_FOOTER = r"""
     -- upgrade application new version
-    INSERT INTO PsvAppStatus(app, version, signature, filename)
-      VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename');
+    INSERT INTO PsvAppStatus(app, version, signature, filename, description)
+      VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description');
 
   COMMIT;
 
@@ -569,7 +571,8 @@ SCRIPT_FOOTER = APP_VERSION + r"""
 -- end of {app} psv script
 """
 
-def sqesc(s: str):
+# simple quote escaping for psql
+def squote(s: str):
     return "'" + s.replace("'", "''") + "'"
 
 def gen_psql_script(args):
@@ -578,7 +581,7 @@ def gen_psql_script(args):
     def output(s: str):
         print(s, file=args.out, end="")
 
-    output(SCRIPT_HEADER.format(app=args.app, schema=sqesc(args.schema), table=sqesc(args.table)))
+    output(SCRIPT_HEADER.format(app=args.app, schema=squote(args.schema), table=squote(args.table)))
 
     version = 0
     for fn, fh in openfiles(args.sql):
@@ -598,10 +601,15 @@ def gen_psql_script(args):
             else:
                 log.error(f"script {fn} contains a transaction command")
                 return 2
+        if m := re.search(r"^\s*--\s*psv\s*:\s*(.*?)\s*$", script, re.I|re.M):
+            description = squote(m.group(1))
+        else:
+            description = "schema step $version"
         data = script.encode(args.encoding)
         signature = bytes_hash(args.hash, data)
         # output psql code
-        output(FILE_HEADER.format(file=fn, version=version, signature=signature,
+        output(FILE_HEADER.format(file=fn, version=version,
+                                  signature=signature, description=description,
                                   filename=fn.split("/")[-1]))
         output(script)
         output(FILE_FOOTER)
