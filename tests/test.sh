@@ -378,8 +378,9 @@ check_des "9.n" bla 1 "application bla initial create"
 check_des "9.o" bla 2 "application bla first upgrade"
 check_des "9.p" bla 3 "bla schema step 3"
 check_des "9.q" bla 4 "bla schema step 4"
-check_run "9.r" 0 bla "remove:wet"
-check_nop "9.s"
+check_run "9.r" 0 bla "status" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.s" 0 bla "remove:wet"
+check_nop "9.t"
 
 # cleanup test database
 dropdb $pgopts $db
