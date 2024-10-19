@@ -85,7 +85,17 @@ function check_ver()
   local name="$1" app="$2" version="$3" schema="${4:-public}" table="${5:-psv_app_status}"
   shift 5
   schema=$(dq "$schema") table=$(dq "$table")
-  check_que "version $name" "$version" "SELECT MAX(version) FROM \"$schema\".\"$table\" WHERE app='$app'"
+  check_que "version $name" "$version" \
+    "SELECT MAX(version) FROM \"$schema\".\"$table\" WHERE app='$app'"
+}
+
+function check_des()
+{
+  local name="$1" app="$2" version="$3" description="$4"
+  shift 4
+  check_que "des $name" 1 \
+    "SELECT COUNT(*) FROM public.psv_app_status
+     WHERE app='$app' AND version=$version AND description='$description'"
 }
 
 # run psv only
@@ -304,18 +314,18 @@ check_ver "8.6" psv 0 psv_test_schema psv_test_table
 check_ver "8.7" bla 0 psv_test_schema psv_test_table
 check_run "8.8" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
 check_nop "8.9" psv_test_schema psv_test_table
-check_run "8.A" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
-check_cnt "8.B" 2 psv_test_schema psv_test_table
-check_ver "8.C" bla 3 psv_test_schema psv_test_table
-check_run "8.D" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
-check_nop "8.E" psv_test_schema psv_test_table
+check_run "8.a" 0 bla "create:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_cnt "8.b" 2 psv_test_schema psv_test_table
+check_ver "8.c" bla 3 psv_test_schema psv_test_table
+check_run "8.d" 0 bla "remove:wet" -s psv_test_schema -t psv_test_table bla_1.sql bla_2.sql bla_3.sql
+check_nop "8.e" psv_test_schema psv_test_table
 # more fantasy
-check_run "8.F" 0 bla "create:wet" -s psv_test_schema -t "let's run versions" bla_1.sql bla_2.sql
-check_cnt "8.G" 2 psv_test_schema "let's run versions"
-check_ver "8.H" bla 2 psv_test_schema "let's run versions"
-check_run "8.I" 0 bla "remove:wet" -s psv_test_schema -t "let's run versions"
-check_nop "8.J" psv_test_schema "let's run versions"
-check_nop "8.K"
+check_run "8.f" 0 bla "create:wet" -s psv_test_schema -t "let's run versions" bla_1.sql bla_2.sql
+check_cnt "8.g" 2 psv_test_schema "let's run versions"
+check_ver "8.h" bla 2 psv_test_schema "let's run versions"
+check_run "8.i" 0 bla "remove:wet" -s psv_test_schema -t "let's run versions"
+check_nop "8.j" psv_test_schema "let's run versions"
+check_nop "8.k"
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
 # content errors and ignore
@@ -339,29 +349,37 @@ echo "-- bla 2 script" | check_psv "8.E standard input" 0 app --debug bla_1.sql 
 
 # with target version
 check_nop "9.0"
-check_run "9.1" 0 app "create:1" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_run "9.2" 0 app "create:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.1" 0 bla "create:1" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.2" 0 bla "create:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_nop "9.3"
 # simple register
-check_run "9.4" 0 app "create:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_run "9.4" 0 bla "create:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_cnt "9.5" 2
 check_ver "9.6" psv 0
-check_ver "9.7" app 0
-check_run "9.8" 0 app "run:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.9" app 0
-# one step at a time
-check_run "9.A" 0 app "run:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.B" app 0
-check_run "9.C" 0 app "run:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.D" app 1
-check_run "9.E" 0 app "run:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.F" app 2
-check_run "9.G" 0 app "run:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.H" app 3
-check_run "9.I" 0 app "run:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "9.J" app 4
-check_run "9.K" 0 app "remove:wet"
-check_nop "9.L"
+check_ver "9.7" bla 0
+check_run "9.8" 0 bla "run:1:dry" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.9" bla 0
+# one step at a time, check version and descriptions
+check_run "9.a" 0 bla "run:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.b" bla 0
+check_run "9.c" 0 bla "run:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.d" bla 1
+check_des "9.e" bla 1 "application bla initial create"
+check_run "9.f" 0 bla "run:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.g" bla 2
+check_des "9.h" bla 2 "application bla first upgrade"
+check_run "9.i" 0 bla "run:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.j" bla 3
+check_des "9.k" bla 3 "bla schema step 3"
+check_run "9.l" 0 bla "run:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "9.m" bla 4
+# all descriptions are there
+check_des "9.n" bla 1 "application bla initial create"
+check_des "9.o" bla 2 "application bla first upgrade"
+check_des "9.p" bla 3 "bla schema step 3"
+check_des "9.q" bla 4 "bla schema step 4"
+check_run "9.r" 0 bla "remove:wet"
+check_nop "9.s"
 
 # cleanup test database
 dropdb $pgopts $db
