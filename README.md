@@ -92,12 +92,6 @@ Several application can share the same setup.
    # show current status
    psql -v psv=status acme < acme.sql
    # …
-   ┌──────┬─────────┬──────────────────────────────────┐
-   │ app  │ version │           description            │
-   ├──────┼─────────┼──────────────────────────────────┤
-   │ acme │       3 │ Acme application with more types │
-   │ psv  │       0 │ •                                │
-   └──────┴─────────┴──────────────────────────────────┘
    ```
 
    | app  | version | description                      |
