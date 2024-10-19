@@ -59,14 +59,17 @@ Several application can share the same setup.
    ```shell
    # first time MUST use command create
    psql -v psv=create acme < acme.sql
-   # psv command set to create
-   # psv dry create for acme, enable with -v psv=create:wet
-   # psv script will create infra, register acme and execute all steps
+   # psv for application acme
+   # psv dry create for acme, enable with -v psv=create:latest:wet
+   # psv will create infra, register acme and execute all steps
 
-   psql -v psv=create:wet < acme.sql
+   psql -v psv=create:wet acme < acme.sql
+   # psv for application acme
    # psv wet create for acme
-   # psv creating psv infra
-   # psv registering app acme
+   # psv creating infra
+   # psv registering acme
+   # psv considering applying steps
+   # psv acme version: 0
    # psv applying acme 1
    # psv applying acme 2
    # psv applying acme 3
@@ -74,13 +77,26 @@ Several application can share the same setup.
    # psv wet create for acme done
 
    # on rerun, do nothing
-   psql -v psv=wet < acme.sql
-   # psv wet apply for app acme
+   psql -v psv=wet acme < acme.sql
+   # psv for application acme
+   # psv wet apply for acme
+   # psv skipping acme registration
+   # psv considering applying steps
+   # psv acme version: 3
    # psv skipping acme 1
    # psv skipping acme 2
    # psv skipping acme 3
    # psv acme version: 3
    # psv wet apply for acme done
+
+   # show current status
+   psql -v psv=status acme < acme.sql
+   ┌──────┬─────────┬─────────────────────────────────┐
+   │ app  │ version │           description           │
+   ├──────┼─────────┼─────────────────────────────────┤
+   │ acme │       3 │ Acme application add more types │
+   │ psv  │       0 │ •                               │
+   └──────┴─────────┴─────────────────────────────────┘
    ```
 
 ## Features
@@ -135,7 +151,6 @@ Always test your scripts with care before applying it to production data.
 
 ### TODO
 
-- update readme example from actual outputs
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
 - reverse?
@@ -145,7 +160,7 @@ Always test your scripts with care before applying it to production data.
 ### ? on ?
 
 - rename `run` to `apply`
-- improve documentation
+- improve documentation, esp. the example
 - improve tests about descriptions
 
 ### 0.3 on 2024-10-19
