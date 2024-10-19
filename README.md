@@ -136,7 +136,7 @@ Always test your scripts with care before applying it to production data.
 - write a tutorial
 - write recipes
 
-### ? on ?
+### 0.3 on 2024-10-19
 
 - add unregister and catchup commands
 - add setting a version target for a run
