@@ -178,6 +178,19 @@ SELECT
 \endif
 
 --
+-- REMOVE
+--
+\if :psv_do_remove
+  \if :psv_dry
+    \echo # psv will drop its infra if it exists
+  \else
+    DROP TABLE IF EXISTS :"psv_schema".:"psv_table";
+  \endif
+  -- bye bye, nothing else to do!
+  \quit
+\endif
+
+--
 -- INIT create psv pristine infra if needed
 --
 SELECT COUNT(*) = 0 AS psv_no_infra
@@ -247,10 +260,12 @@ COMMIT;
   \if :psv_no_infra
     \if :psv_dry
       \echo # psv will skip needed infra initialization… consider commands init or create
+      \quit
     \else
-      \warn # psv skipping needed psv infra initialization… consider commands init or create
+      \warn # ERROR psv skipping needed psv infra initialization… consider commands init or create
+      \quit
     \endif
-  -- else there is an infra and we do not to init
+  -- else there is an infra and we do not need to init
   \endif
 \endif
 
@@ -289,20 +304,6 @@ COMMIT;
     JOIN :"psv_schema".:"psv_table" USING (app, version)
     ORDER BY 1;
 
-\endif
-
---
--- REMOVE psv infra
--- this is placed after STATUS so that the current status is shown
---
-\if :psv_do_remove
-  \if :psv_dry
-    \echo # psv will drop its infra if it exists
-  \else
-    DROP TABLE IF EXISTS :"psv_schema".:"psv_table";
-  \endif
-  -- bye bye, nothing else to do!
-  \quit
 \endif
 
 --
