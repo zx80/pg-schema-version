@@ -119,6 +119,8 @@ Test your scripts with care before applying it to production data.
 
 ### TODO
 
+- escape object names (schema and table)
+- check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
 - rename _run_ phase? apply? exec?
 - reverse?
