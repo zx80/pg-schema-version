@@ -121,7 +121,7 @@ SELECT
   -- whether to unregister the application
   :'psv_cmd' IN ('unregister')                       AS psv_do_unregister,
   -- whether to show all application status
-  TRUE                                               AS psv_do_status,
+  :'psv_cmd' IN ('status')                           AS psv_do_status,
   -- whether to execute schema create steps
   :'psv_cmd' IN ('create', 'apply', 'catchup')       AS psv_do_apply,
   -- whether to remove the infrastructure
@@ -506,7 +506,7 @@ FILE_HEADER = r"""
         INSERT INTO PsvAppStatus(app, version, signature, filename, description)
           VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description');
       \else
-        \echo # applying :psv_app :psv_version
+        \echo # psv applying :psv_app :psv_version
 
   BEGIN;
 """

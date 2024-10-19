@@ -160,6 +160,7 @@ Always test your scripts with care before applying it to production data.
 ### ? on ?
 
 - rename `run` to `apply`
+- show status when asked
 - improve documentation, esp. the example
 - improve tests about descriptions
 
