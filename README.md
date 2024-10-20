@@ -169,6 +169,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - default phase? status? run? help?
 - check? `foo =n …`?
 - keep step execution history…
+- keep actual command used
 - reverse functional tests
 - on partial, detect missing path before trying?
 - add synopsis and document all options
@@ -176,6 +177,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write a tutorial
 - write recipes
 - test setting `psv_app`
+- allow to show all operations done on an application
 
 ### ? on ?
 
