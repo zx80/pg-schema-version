@@ -11,7 +11,7 @@ The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-232%20✓-success)
+![Tests](https://img.shields.io/badge/tests-238%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -113,6 +113,7 @@ driven by `psql`-variable `psv` with value _command_:_version_:_moist_
   - `init` just initialize an empty psv infrastructure.
   - `register` add new application to psv versioning.
   - `apply` execute required steps on an already registered application.
+  - `reverse` execute scripts to reverse steps.
   - `create` do the 3 phases above: init, register and apply.
   - `unregister` remove application from psv versioning.
   - `remove` drop psv infrastructure.
@@ -125,17 +126,17 @@ driven by `psql`-variable `psv` with value _command_:_version_:_moist_
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
 
-The only way is forward: there is no provision to go back to a previous
-state. However, note that schema steps are performed in a transaction, so
-that it can only fail one full step at a time.
-
 Each provided script must contain a special `-- psv: name +5432 description`
 header with:
 
 - `name` the application name, which must be consistent accross all scripts.
-- `+5432` the version number to apply, which will be checked for inconsistencies
-  such as repetition or missing numbers.
+- `+5432` the version for apply (`+`) or reverse (`-`) a schema step, which
+  will be checked for inconsistencies such as repeated or missing versions.
 - `description` an optional description of the resulting application status.
+
+Beware that reversing may help you lose precious data, and that it is your
+responsability that the provided reverse scripts undo what was done by the
+forward scripts.
 
 ## Caveats
 
@@ -166,18 +167,19 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 - check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
-- reverse?
-  - each file contains a mandatory declaration `-- psv: …`
-  - `foo +n` `foo -n` : app foo schema n, reverse n.
-  - `-a foo` is used to check the application name
-  - must check that a continuous path exists before applying anything!
 - check? `foo =n …`?
+- keep step execution history…
+- reverse functional tests
+- on partial, detect missing path before trying?
 - add synopsis and document all options
+- separate ScriptError statuses
 - write a tutorial
 - write recipes
+- test setting `psv_app`
 
 ### 0.4 on 2024-10-20
 
+- add `reverse` command to allow going backwards
 - make psv comment header (`-- psv: foo +1 …`) mandatory,
   including many sanity checks about names, versions…
 - rename `run` to `apply`

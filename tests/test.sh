@@ -347,26 +347,32 @@ check_psv "8.t infered name" 0 "" bla_1.sql bla_2.sql bla_3.sql
 check_psv "8.u" 4 bla bla_4.sql bla_2.sql bla_1.sql
 check_psv "8.v" 0 bla -p bla_4.sql bla_2.sql bla_1.sql
 check_psv "8.w" 4 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
-check_psv "8.x" 4 bad bad_rev.sql
+check_psv "8.x" 4 bla bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.y" 0 bla -p bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.z" 0 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql
+check_psv "8.A" 4 bla bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
+check_psv "8.B" 0 bla -p bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
+check_psv "8.C" 4 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.D" 0 bla -p bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
 
 # output overwrite
 rm -f tmp.out
-check_psv "8.y output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
-check_psv "8.z output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.E output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.F output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
 
 # help
-check_run "8.A" 0 app "help"
-check_run "8.B" 0 app "help:dry"
-check_run "8.C" 0 app "help:wet"
+check_run "8.G" 0 app "help"
+check_run "8.H" 0 app "help:dry"
+check_run "8.I" 0 app "help:wet"
 
 # stdin
-check_psv "8.D standard input" 0 bla --debug bla_1.sql - bla_3.sql <<EOF
+check_psv "8.J standard input" 0 bla --debug bla_1.sql - bla_3.sql <<EOF
 -- psv: bla +2
 EOF
 
 # trigger a repeated error under debug
-check_psv "8.E error under debug" 1 bla --debug bla_1.sql bla_2.sql bla_1.sql 2> /dev/null
+check_psv "8.K error under debug" 1 bla --debug bla_1.sql bla_2.sql bla_1.sql 2> /dev/null
 
 # with target version
 check_nop "9.0"

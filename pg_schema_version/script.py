@@ -51,7 +51,9 @@ class Script:
         out = FILE_HEADER.format(
             file=self._filename, version=self._version,
             signature=self._signature, description=squote(self._description),
-            filename=self._filename.split("/")[-1]
+            filename=self._filename.split("/")[-1],
+            forward=1 if self._forward else 0,
+            operation="apply" if self._forward else "reverse",
         )
         out += self._script
         out += FILE_FOOTER
@@ -62,7 +64,7 @@ def check_versions(scripts: list[Script], partial=False):
     bads = set(filter(lambda s: s._version < 1, scripts))
     # version < 1
     if bads:
-        raise ScriptError(f"unexpected non positive versions: {' '.join(str(v) for v in bads)}")
+        raise ScriptError(f"unexpected non positive versions: {' '.join(str(v._version) for v in bads)}")
     versions = set(s._version for s in scripts)
     # repeated
     if len(versions) != len(scripts):
@@ -105,13 +107,22 @@ def gen_psql_script(args):
             filenames = ", ".join(script._filename for script in scripts)
             raise ScriptError(f"inconsistent application name found in: {filenames}")
 
-    # check versions
+    # order and check versions
     forwards = sorted((s for s in scripts if s._forward), key=lambda s: s._version)
     if forwards:
         check_versions(forwards, args.partial)
 
-    if len(forwards) != len(scripts):
-        raise ScriptError("reverse not implemented yet")
+    backwards = sorted((s for s in scripts if not s._forward), key=lambda s: s._version, reverse=True)
+    if backwards:
+        check_versions(backwards, args.partial)
+
+    assert len(forwards) + len(backwards) == len(scripts)
+
+    if backwards and len(forwards) != len(backwards):
+        if args.partial:
+            log.warning("asymmetrical steps")
+        else:
+            raise ScriptError("asymmetrical steps")
 
     # actual psql generation
     log.info("generating schema construction script for {args.app}")
@@ -120,7 +131,7 @@ def gen_psql_script(args):
         print(s, file=args.out, end="")
 
     output(SCRIPT_HEADER.format(app=args.app, schema=squote(args.schema), table=squote(args.table)))
-    for script in forwards:
+    for script in forwards + backwards:
         log.info(f"considering file {script._filename} for step {args.app} {script._version}")
         output(str(script))
     output(SCRIPT_FOOTER.format(app=args.app))
