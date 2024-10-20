@@ -177,9 +177,12 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write recipes
 - test setting `psv_app`
 
-### 0.4 on 2024-10-20
+### ? on ?
 
 - add `reverse` command to allow going backwards
+
+### 0.4 on 2024-10-20
+
 - make psv comment header (`-- psv: foo +1 …`) mandatory,
   including many sanity checks about names, versions…
 - rename `run` to `apply`
