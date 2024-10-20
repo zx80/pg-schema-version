@@ -172,6 +172,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
   - `-a foo` is used to check the application name
   - must check that a continuous path exists before applying anything!
 - check? `foo =n …`?
+- add synopsis and document all options
 - write a tutorial
 - write recipes
 
