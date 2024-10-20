@@ -11,7 +11,7 @@ The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-217%20✓-success)
+![Tests](https://img.shields.io/badge/tests-232%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -26,17 +26,21 @@ Several application can share the same setup.
    pip install pg-schema-version
    ```
 
-2. Write a sequence of incremental postgres SQL data definition scripts
+2. Write a sequence of incremental postgres SQL data definition scripts.
+   The `-- psv:` comment header is mandatory to declare the application name,
+   version and optional description.
 
    - initial schema creation `create_000.sql`
 
      ```sql
+     -- psv: acme +1 Acme Schema v1.0
      CREATE TABLE AcmeData(aid SERIAL PRIMARY KEY, data TEXT UNIQUE NOT NULL);
      ```
 
    - first schema upgrade `create_001.sql`
 
      ```sql
+     -- psv: acme +2 Acme Schema v1.1
      CREATE TABLE AcmeType(atid SERIAL PRIMARY KEY, atype TEXT UNIQUE NOT NULL);
      INSERT INTO AcmeType(atype) VALUES ('great'), ('super');
      ALTER TABLE AcmeData ADD COLUMN atid INT NOT NULL DEFAULT 1 REFERENCES AcmeType;
@@ -45,6 +49,7 @@ Several application can share the same setup.
    - second schema upgrade `create_002.sql`
 
      ```sql
+     -- psv: acme +3 Acme Schema v2.0
      INSERT INTO AcmeType(atype) VALUES ('wow'), ('incredible');
      ```
 
@@ -94,10 +99,10 @@ Several application can share the same setup.
    # …
    ```
 
-   | app  | version | description                      |
-   |---   |     ---:|---                               |
-   | acme |       3 | Acme application with more types |
-   | psv  |       0 | •                                |
+   | app  | version | description      |
+   |---   |     ---:|---               |
+   | acme |       3 | Acme Schema v2.0 |
+   | psv  |       0 | •                |
 
 ## Features
 
@@ -159,7 +164,6 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - reverse?
   - each file contains a mandatory declaration `-- psv: …`
   - `foo +n` `foo -n` : app foo schema n, reverse n.
-  - option `-K --keep` to keep file order
   - `-a foo` is used to check the application name
   - must check that a continuous path exists before applying anything!
 - check? `foo =n …`?
@@ -168,10 +172,16 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 ### ? on ?
 
+- make psv comment header (`-- psv: foo +1 …`) mandatory,
+  including many sanity checks about names, versions…
 - rename `run` to `apply`
-- show status when asked
+- show status only when asked
+- add `--partial` option to allow partial scripts (i.e. missing versions)
+- use `--app` to check script consistency
+- check current status strictly before applying a step
 - improve documentation, esp. the example
 - improve tests about descriptions
+- refactor script sources
 
 ### 0.3 on 2024-10-19
 

@@ -33,7 +33,7 @@ function test_result()
     let OK+=1
   else
     let KO+=1
-    echo "KO: $name ($val vs $expect)" 1>&2
+    echo "KO: $TEST $name ($val vs $expect)" 1>&2
     [ "$TEST_STOP" ] && exit 1
   fi
 }
@@ -104,7 +104,9 @@ function check_psv()
   local name="$1" expect="$2" app="$3"
   shift 3
 
-  $psv -a "$app" "$@" > /dev/null
+  [ "$app" ] && app="-a $app"
+
+  $psv $app "$@" > /dev/null
   result=$?
 
   test_result "psv $name" "$result" "$expect"
@@ -194,24 +196,26 @@ check_ver "2.t" app 0
 check_run "2.u" 0 app "remove:wet"
 check_nop "2.v"
 
-# create
+# create step by step
 check_nop "3.0"
 check_run "3.1" 0 app "create"
 check_run "3.2" 0 app "create:dry"
-check_nop "3.3"
-check_run "3.4" 0 app "create:wet"
-check_cnt "3.5" 2
-check_ver "3.6" app 0
-check_run "3.7" 0 app "create:wet" bla_1.sql
-check_ver "3.8" app 1
-check_run "3.9" 0 app "create:wet" bla_1.sql bla_2.sql
-check_ver "3.a" app 2
-check_run "3.b" 0 app "create:wet" bla_1.sql bla_2.sql bla_3.sql
-check_ver "3.c" app 3
-check_run "3.d" 0 app "create:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
-check_ver "3.e" app 4
-check_run "3.d" 0 app "remove:wet"
-check_nop "3.g"
+check_run "3.3" 0 bla "create:dry"
+check_nop "3.4"
+check_run "3.5" 0 app "create:wet"
+check_run "3.6" 0 bla "create:wet"
+check_cnt "3.7" 3
+check_ver "3.8" app 0
+check_run "3.9" 0 bla "create:wet" bla_1.sql
+check_ver "3.a" bla 1
+check_run "3.b" 0 bla "create:wet" bla_1.sql bla_2.sql
+check_ver "3.c" bla 2
+check_run "3.d" 0 bla "create:wet" bla_1.sql bla_2.sql bla_3.sql
+check_ver "3.e" bla 3
+check_run "3.f" 0 bla "create:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
+check_ver "3.g" bla 4
+check_run "3.h" 0 bla "remove:wet"
+check_nop "3.i"
 
 # create including error detection
 check_nop "4.0"
@@ -219,48 +223,50 @@ check_run "4.1" 0 app "create"
 check_run "4.2" 0 app "create:dry"
 check_nop "4.3"
 check_run "4.4" 0 app "create:wet"
-check_cnt "4.5" 2
-check_ver "4.6" psv 0
-check_ver "4.7" app 0
-check_run "4.8" 0 app "create:wet" bla_1.sql  # ok
-check_ver "4.9" app 1
-check_run "4.a" 0 app "create:wet" bla_2.sql bla_1.sql  # KO
-check_run "4.b" 0 app "create:wet" bla_2.sql bla_3.sql  # KO
-check_run "4.c" 0 app "create:wet" bla_2.sql bla_4.sql  # KO
-check_ver "4.d" app 1
-check_run "4.e" 0 app "create:wet" bla_1.sql bla_2.sql  # ok
-check_ver "4.f" app 2
-check_run "4.g" 0 app "create:wet" bla_1.sql bla_3.sql bla_2.sql  # KO
-check_run "4.h" 0 app "create:wet" bla_1.sql bla_2.sql bla_2.sql  # KO
-check_run "4.i" 0 app "create:wet" bla_1.sql bla_1.sql bla_2.sql  # KO
-check_run "4.j" 0 app "create:wet" bla_1.sql bla_4.sql bla_2.sql bla_3.sql  # KO
-check_ver "4.k" app 2
-check_run "4.l" 0 app "create:wet" bla_1.sql bla_2.sql bla_3.sql  # ok
-check_ver "4.m" app 3
-check_run "4.n" 0 app "create:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql  # ok
-check_ver "4.o" app 4
-check_run "4.p" 0 app "remove:wet"
-check_nop "4.q"
+check_run "4.5" 0 bla "create:wet"
+check_cnt "4.6" 3
+check_ver "4.7" psv 0
+check_ver "4.8" app 0
+check_ver "4.9" bla 0
+check_run "4.a" 0 bla "create:wet" bla_1.sql  # ok
+check_ver "4.b" bla 1
+check_run "4.c" 0 bla "create:wet" -p bla_3.sql bla_1.sql  # KO
+check_run "4.d" 0 bla "create:wet" -p bla_3.sql bla_4.sql  # KO
+check_run "4.e" 0 bla "create:wet" -p bla_4.sql bla_3.sql  # KO
+check_ver "4.f" bla 1
+check_run "4.g" 0 bla "create:wet" bla_1.sql bla_2.sql  # ok
+check_ver "4.h" bla 2
+check_run "4.i" 0 bla "create:wet" -p bla_1.sql bla_4.sql bla_2.sql  # KO
+check_run "4.j" 0 bla "create:wet" -p bla_1.sql bla_2.sql bla_4.sql  # KO
+check_run "4.k" 0 bla "create:wet" -p bla_1.sql bla_1.sql bla_2.sql  # KO
+check_run "4.l" 0 bla "create:wet" -p bla_1.sql bla_4.sql bla_2.sql  # KO
+check_ver "4.m" bla 2
+check_run "4.n" 0 bla "create:wet" bla_1.sql bla_2.sql bla_3.sql  # ok
+check_ver "4.o" bla 3
+check_run "4.p" 0 bla "create:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql  # ok
+check_ver "4.q" bla 4
+check_run "4.r" 0 bla "remove:wet"
+check_nop "4.s"
 
 # apply
 check_nop "5.0"
-check_run "5.1" 0 app "apply" bla_1.sql bla_2.sql
-check_run "5.2" 0 app "apply:dry" bla_1.sql bla_2.sql
+check_run "5.1" 0 bla "apply" bla_1.sql bla_2.sql
+check_run "5.2" 0 bla "apply:dry" bla_1.sql bla_2.sql
 check_nop "5.3"
-check_run "5.4" 0 app "apply:wet" bla_1.sql bla_2.sql  # KO, need init and register
+check_run "5.4" 0 bla "apply:wet" bla_1.sql bla_2.sql  # KO, need init and register
 check_nop "5.5"
-check_run "5.6" 0 app "init:wet" bla_1.sql bla_2.sql
+check_run "5.6" 0 bla "init:wet" bla_1.sql bla_2.sql
 check_cnt "5.7" 1
-check_run "5.8" 0 app "apply:wet" bla_1.sql bla_2.sql  # KO, need register
+check_run "5.8" 0 bla "apply:wet" bla_1.sql bla_2.sql  # KO, need register
 check_cnt "5.9" 1
-check_run "5.a" 0 app "register:wet" bla_1.sql bla_2.sql
+check_run "5.a" 0 bla "register:wet" bla_1.sql bla_2.sql
 check_cnt "5.b" 2
-check_ver "5.c" app 0
-check_run "5.d" 0 app "apply:wet" bla_1.sql bla_2.sql
-check_ver "5.e" app 2
-check_run "5.f" 0 app "apply:wet" bla_1.sql bla_3.sql bla_2.sql  # KO
-check_ver "5.g" app 2
-check_run "5.h" 0 app "remove:wet"
+check_ver "5.c" bla 0
+check_run "5.d" 0 bla "apply:wet" bla_1.sql bla_2.sql
+check_ver "5.e" bla 2
+check_run "5.f" 0 bla "apply:wet" bla_3.sql bla_2.sql bla_1.sql  # out of order is ok
+check_ver "5.g" bla 3
+check_run "5.h" 0 bla "remove:wet"
 check_nop "5.i"
 
 # with foo table
@@ -329,23 +335,38 @@ check_nop "8.k"
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
 # content errors and ignore
-check_psv "8.5 bs command in script" 1 app bad_bs.sql
-check_psv "8.6 bs command in script" 0 app -T bad_bs.sql
-check_psv "8.7 sql command in script" 2 app bad_sql.sql
-check_psv "8.8 sql command in script" 0 app -T bad_sql.sql
+check_psv "8.l bs command in script" 4 bad bad_bs.sql
+check_psv "8.m bs command in script" 0 bad -T bad_bs.sql
+check_psv "8.n sql command in script" 4 bad bad_sql.sql
+check_psv "8.o sql command in script" 0 bad -T -p bad_sql.sql
+check_psv "8.p no psv header" 4 bad -p bad_psv.sql
+check_psv "8.q malformed psv header" 4 bad bad_psv2.sql
+check_psv "8.r zero version" 4 bad bad_zero.sql
+check_psv "8.s repeated" 4 bla bla_1.sql bla_1.sql
+check_psv "8.t infered name" 0 "" bla_1.sql bla_2.sql bla_3.sql
+check_psv "8.u" 4 bla bla_4.sql bla_2.sql bla_1.sql
+check_psv "8.v" 0 bla -p bla_4.sql bla_2.sql bla_1.sql
+check_psv "8.w" 4 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
+check_psv "8.x" 4 bad bad_rev.sql
 
 # output overwrite
 rm -f tmp.out
-check_psv "8.9 output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
-check_psv "8.A output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.y output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.z output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
 
 # help
-check_run "8.B" 0 app "help"
-check_run "8.C" 0 app "help:dry"
-check_run "8.D" 0 app "help:wet"
+check_run "8.A" 0 app "help"
+check_run "8.B" 0 app "help:dry"
+check_run "8.C" 0 app "help:wet"
 
-echo "-- bla 2 script" | check_psv "8.E standard input" 0 app --debug bla_1.sql - bla_3.sql
+# stdin
+check_psv "8.D standard input" 0 bla --debug bla_1.sql - bla_3.sql <<EOF
+-- psv: bla +2
+EOF
+
+# trigger a repeated error under debug
+check_psv "8.E error under debug" 1 bla --debug bla_1.sql bla_2.sql bla_1.sql 2> /dev/null
 
 # with target version
 check_nop "9.0"
@@ -364,20 +385,20 @@ check_run "9.a" 0 bla "apply:0:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.b" bla 0
 check_run "9.c" 0 bla "apply:1:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.d" bla 1
-check_des "9.e" bla 1 "application bla initial create"
+check_des "9.e" bla 1 "application bla initial schema"
 check_run "9.f" 0 bla "apply:2:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.g" bla 2
 check_des "9.h" bla 2 "application bla first upgrade"
 check_run "9.i" 0 bla "apply:3:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.j" bla 3
-check_des "9.k" bla 3 "bla schema step 3"
+check_des "9.k" bla 3 "application bla second upgrade"
 check_run "9.l" 0 bla "apply:4:wet" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_ver "9.m" bla 4
 # all descriptions are there
-check_des "9.n" bla 1 "application bla initial create"
+check_des "9.n" bla 1 "application bla initial schema"
 check_des "9.o" bla 2 "application bla first upgrade"
-check_des "9.p" bla 3 "bla schema step 3"
-check_des "9.q" bla 4 "bla schema step 4"
+check_des "9.p" bla 3 "application bla second upgrade"
+check_des "9.q" bla 4 "application bla third upgrade"
 check_run "9.r" 0 bla "status" bla_1.sql bla_2.sql bla_3.sql bla_4.sql
 check_run "9.s" 0 bla "remove:wet"
 check_nop "9.t"

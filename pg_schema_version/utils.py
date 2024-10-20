@@ -1,4 +1,3 @@
-import sys
 import logging
 import hashlib
 
@@ -9,12 +8,7 @@ def bytes_hash(algo: str, data: bytes) -> str:
     h = hashlib.new(algo)
     h.update(data)
     return h.hexdigest()
- 
-def openfiles(args: list[str] = []):
-    """Generate opened files from a list of file names."""
-    for fn in args:
-        if fn == "-":
-            yield fn, sys.stdin
-        else:
-            with open(fn) as fh:
-                yield fn, fh
+
+def squote(s: str):
+    """Simple quote escaping for psql."""
+    return "'" + s.replace("'", "''") + "'"

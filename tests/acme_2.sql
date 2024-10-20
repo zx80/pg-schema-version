@@ -1,4 +1,4 @@
--- psv: Acme application first upgrade with types.
+-- psv: acme +2 Acme application first upgrade with types.
 
 CREATE TABLE AcmeType(
   atid SERIAL PRIMARY KEY,
