@@ -1,3 +1,5 @@
+# psql script parts
+
 APP_VERSION = r"""
 \if :psv_no_infra
   \echo # psv skipping showing :psv_app version, no infra
