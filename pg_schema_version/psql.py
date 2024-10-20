@@ -1,4 +1,5 @@
-# psql script parts
+# psql script parts for psv
+# programming with "if boolean_variable" without logical operators is so fun!
 
 APP_VERSION = r"""
 \if :psv_no_infra
