@@ -20,6 +20,8 @@ Several application can share the same setup.
 
 ## Usage
 
+Here is a typical use case for `pg-schema-version`:
+
 1. Install from PyPi, e.g. with `pip`:
 
    ```shell
