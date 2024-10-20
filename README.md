@@ -178,6 +178,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write recipes
 - test setting `psv_app`
 - allow to show all operations done on an application
+- show script version
 
 ### ? on ?
 
