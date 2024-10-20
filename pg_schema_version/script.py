@@ -26,20 +26,20 @@ class Script:
                 script = f.read()
         # checks
         if not re.match(r"\s*--\s*psv\s*:", script):
-            raise ScriptError(f"script {filename} missing psv header: -- psv: …")
+            raise ScriptError(2, f"script {filename} missing psv header: -- psv: …")
         m = re.match(r"\s*--\s*psv\s*:\s*(\w+)\s*([-+])\s*(\d+)(\s+(.*?)\s*)?$", script, re.M)
         if not m:
-            raise ScriptError(2, f"script {filename} unexpected psv header")
+            raise ScriptError(3, f"script {filename} unexpected psv header")
         if re.search(r"^\s*\\", script, re.M):
             if trust:
                 log.warning(f"script {filename} seems to contain a backslash command")
             else:
-                raise ScriptError(3, f"script {filename} contains a backslash command")
+                raise ScriptError(4, f"script {filename} contains a backslash command")
         if re.search(r"^\s*(commit|rollback|savepoint)\b", script, re.I|re.M):
             if trust:
                 log.warning(f"script {filename} seems to contain a transaction command")
             else:
-                raise ScriptError(4, f"script {filename} contains a transaction command")
+                raise ScriptError(5, f"script {filename} contains a transaction command")
         # extract and store
         self._script = script
         self._name = m.group(1)
@@ -68,7 +68,7 @@ def check_versions(scripts: list[Script], partial=False):
     bads = set(filter(lambda s: s._version < 1, scripts))
     # version < 1
     if bads:
-        raise ScriptError(5, f"unexpected non positive versions: {' '.join(str(v._version) for v in bads)}")
+        raise ScriptError(6, f"unexpected non positive versions: {' '.join(str(v._version) for v in bads)}")
     versions = set(s._version for s in scripts)
     # repeated
     if len(versions) != len(scripts):
@@ -82,7 +82,7 @@ def check_versions(scripts: list[Script], partial=False):
         if partial:
             log.warning(msg)
         else:
-            raise ScriptError(6, msg)
+            raise ScriptError(7, msg)
     # missing
     latest = max(s._version for s in scripts)
     expected = set(range(1, latest+1))
@@ -91,7 +91,7 @@ def check_versions(scripts: list[Script], partial=False):
         if partial:
             log.warning(msg)
         else:
-            raise ScriptError(7, msg)
+            raise ScriptError(8, msg)
 
 def gen_psql_script(args):
     """Generate an idempotent psql script."""
@@ -109,7 +109,7 @@ def gen_psql_script(args):
         bad_names = [script for script in scripts if script._name != args.app]
         if bad_names:
             filenames = ", ".join(script._filename for script in scripts)
-            raise ScriptError(8, f"inconsistent application name found in: {filenames}")
+            raise ScriptError(9, f"inconsistent application name found in: {filenames}")
 
     # order and check versions
     forwards = sorted((s for s in scripts if s._forward), key=lambda s: s._version)
@@ -126,7 +126,7 @@ def gen_psql_script(args):
         if args.partial:
             log.warning("asymmetrical steps")
         else:
-            raise ScriptError(9, "asymmetrical steps")
+            raise ScriptError(10, "asymmetrical steps")
 
     # actual psql generation
     log.info("generating schema construction script for {args.app}")
@@ -153,6 +153,8 @@ def psv():
             prog="pg-schema-version",
             description="Generate an idempotent psql script for Postgres schema versioning.",
             epilog="All software have bugs…")
+    ap.add_argument("-V", "--version", default=False, action="store_true",
+                    help="show script version and exit")
     ap.add_argument("-d", "--debug", default=False, action="store_true",
                     help="set debug mode")
     ap.add_argument("-v", "--verbose", default=False, action="store_true",
@@ -181,6 +183,11 @@ def psv():
         log.setLevel(logging.DEBUG)
     elif args.verbose:
         log.setLevel(logging.INFO)
+
+    if args.version:
+        from importlib.metadata import version as pkg_version
+        print(f"{sys.argv[0]} version {pkg_version('pg-schema-version')}")
+        return 0
 
     if isinstance(args.out, str):
         if os.path.exists(args.out):

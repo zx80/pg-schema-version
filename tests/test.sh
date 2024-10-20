@@ -335,24 +335,24 @@ check_nop "8.k"
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
 # content errors and ignore
-check_psv "8.l bs command in script" 3 bad bad_bs.sql
+check_psv "8.l bs command in script" 4 bad bad_bs.sql
 check_psv "8.m bs command in script" 0 bad -T bad_bs.sql
-check_psv "8.n sql command in script" 4 bad bad_sql.sql
+check_psv "8.n sql command in script" 5 bad bad_sql.sql
 check_psv "8.o sql command in script" 0 bad -T -p bad_sql.sql
-check_psv "8.p no psv header" 1 bad -p bad_psv.sql
-check_psv "8.q malformed psv header" 2 bad bad_psv2.sql
-check_psv "8.r zero version" 5 bad bad_zero.sql
-check_psv "8.s repeated" 6 bla bla_1.sql bla_1.sql
+check_psv "8.p no psv header" 2 bad -p bad_psv.sql
+check_psv "8.q malformed psv header" 3 bad bad_psv2.sql
+check_psv "8.r zero version" 6 bad bad_zero.sql
+check_psv "8.s repeated" 7 bla bla_1.sql bla_1.sql
 check_psv "8.t infered name" 0 "" bla_1.sql bla_2.sql bla_3.sql
-check_psv "8.u" 7 bla bla_4.sql bla_2.sql bla_1.sql
+check_psv "8.u" 8 bla bla_4.sql bla_2.sql bla_1.sql
 check_psv "8.v" 0 bla -p bla_4.sql bla_2.sql bla_1.sql
-check_psv "8.w" 8 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
-check_psv "8.x" 9 bla bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.w" 9 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
+check_psv "8.x" 10 bla bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.y" 0 bla -p bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.z" 0 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql
-check_psv "8.A" 9 bla bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
+check_psv "8.A" 10 bla bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
 check_psv "8.B" 0 bla -p bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
-check_psv "8.C" 9 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.C" 10 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.D" 0 bla -p bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
 
 # output overwrite
@@ -373,6 +373,7 @@ EOF
 
 # trigger a repeated error under debug
 check_psv "8.K error under debug" 1 bla --debug bla_1.sql bla_2.sql bla_1.sql 2> /dev/null
+check_psv "8.L version" 0 bla --version
 
 # apply with target version
 check_nop "9.0"
