@@ -7,7 +7,11 @@ from .utils import log, bytes_hash, squote
 from .psql import SCRIPT_HEADER, FILE_HEADER, FILE_FOOTER, SCRIPT_FOOTER
 
 class ScriptError(BaseException):
-    pass
+    """PSV Script Errors."""
+
+    def __init__(self, status: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.status = status
 
 class Script:
     """Hold an SQL script."""
@@ -25,17 +29,17 @@ class Script:
             raise ScriptError(f"script {filename} missing psv header: -- psv: …")
         m = re.match(r"\s*--\s*psv\s*:\s*(\w+)\s*([-+])\s*(\d+)(\s+(.*?)\s*)?$", script, re.M)
         if not m:
-            raise ScriptError(f"script {filename} unexpected psv header")
+            raise ScriptError(2, f"script {filename} unexpected psv header")
         if re.search(r"^\s*\\", script, re.M):
             if trust:
                 log.warning(f"script {filename} seems to contain a backslash command")
             else:
-                raise ScriptError(f"script {filename} contains a backslash command")
+                raise ScriptError(3, f"script {filename} contains a backslash command")
         if re.search(r"^\s*(commit|rollback|savepoint)\b", script, re.I|re.M):
             if trust:
                 log.warning(f"script {filename} seems to contain a transaction command")
             else:
-                raise ScriptError(f"script {filename} contains a transaction command")
+                raise ScriptError(4, f"script {filename} contains a transaction command")
         # extract and store
         self._script = script
         self._name = m.group(1)
@@ -64,7 +68,7 @@ def check_versions(scripts: list[Script], partial=False):
     bads = set(filter(lambda s: s._version < 1, scripts))
     # version < 1
     if bads:
-        raise ScriptError(f"unexpected non positive versions: {' '.join(str(v._version) for v in bads)}")
+        raise ScriptError(5, f"unexpected non positive versions: {' '.join(str(v._version) for v in bads)}")
     versions = set(s._version for s in scripts)
     # repeated
     if len(versions) != len(scripts):
@@ -78,7 +82,7 @@ def check_versions(scripts: list[Script], partial=False):
         if partial:
             log.warning(msg)
         else:
-            raise ScriptError(msg)
+            raise ScriptError(6, msg)
     # missing
     latest = max(s._version for s in scripts)
     expected = set(range(1, latest+1))
@@ -87,7 +91,7 @@ def check_versions(scripts: list[Script], partial=False):
         if partial:
             log.warning(msg)
         else:
-            raise ScriptError(msg)
+            raise ScriptError(7, msg)
 
 def gen_psql_script(args):
     """Generate an idempotent psql script."""
@@ -105,7 +109,7 @@ def gen_psql_script(args):
         bad_names = [script for script in scripts if script._name != args.app]
         if bad_names:
             filenames = ", ".join(script._filename for script in scripts)
-            raise ScriptError(f"inconsistent application name found in: {filenames}")
+            raise ScriptError(8, f"inconsistent application name found in: {filenames}")
 
     # order and check versions
     forwards = sorted((s for s in scripts if s._forward), key=lambda s: s._version)
@@ -122,7 +126,7 @@ def gen_psql_script(args):
         if args.partial:
             log.warning("asymmetrical steps")
         else:
-            raise ScriptError("asymmetrical steps")
+            raise ScriptError(9, "asymmetrical steps")
 
     # actual psql generation
     log.info("generating schema construction script for {args.app}")
@@ -181,7 +185,7 @@ def psv():
     if isinstance(args.out, str):
         if os.path.exists(args.out):
             log.error(f"psv will not overwrite output file {args.out}, remove it first")
-            return 3
+            return 1
         args.out = open(args.out, "w")
 
     try:
@@ -190,4 +194,4 @@ def psv():
         log.error(str(e))
         if args.debug:
             raise
-        return 4
+        return e.status

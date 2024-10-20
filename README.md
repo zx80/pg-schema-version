@@ -172,7 +172,6 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - keep actual command used
 - on partial, detect missing path before trying?
 - add synopsis and document all options
-- separate ScriptError statuses
 - write a tutorial
 - write recipes
 - test setting `psv_app`
@@ -182,6 +181,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 ### ? on ?
 
 - add `reverse` command to allow going backwards, and tests
+- differentiate exit status depending on the error
 
 ### 0.4 on 2024-10-20
 

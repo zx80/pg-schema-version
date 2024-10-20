@@ -335,30 +335,30 @@ check_nop "8.k"
 $pg -c "DROP SCHEMA psv_test_schema" $db
 
 # content errors and ignore
-check_psv "8.l bs command in script" 4 bad bad_bs.sql
+check_psv "8.l bs command in script" 3 bad bad_bs.sql
 check_psv "8.m bs command in script" 0 bad -T bad_bs.sql
 check_psv "8.n sql command in script" 4 bad bad_sql.sql
 check_psv "8.o sql command in script" 0 bad -T -p bad_sql.sql
-check_psv "8.p no psv header" 4 bad -p bad_psv.sql
-check_psv "8.q malformed psv header" 4 bad bad_psv2.sql
-check_psv "8.r zero version" 4 bad bad_zero.sql
-check_psv "8.s repeated" 4 bla bla_1.sql bla_1.sql
+check_psv "8.p no psv header" 1 bad -p bad_psv.sql
+check_psv "8.q malformed psv header" 2 bad bad_psv2.sql
+check_psv "8.r zero version" 5 bad bad_zero.sql
+check_psv "8.s repeated" 6 bla bla_1.sql bla_1.sql
 check_psv "8.t infered name" 0 "" bla_1.sql bla_2.sql bla_3.sql
-check_psv "8.u" 4 bla bla_4.sql bla_2.sql bla_1.sql
+check_psv "8.u" 7 bla bla_4.sql bla_2.sql bla_1.sql
 check_psv "8.v" 0 bla -p bla_4.sql bla_2.sql bla_1.sql
-check_psv "8.w" 4 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
-check_psv "8.x" 4 bla bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.w" 8 app bla_4.sql bla_3.sql bla_2.sql bla_1.sql
+check_psv "8.x" 9 bla bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.y" 0 bla -p bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.z" 0 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql
-check_psv "8.A" 4 bla bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
+check_psv "8.A" 9 bla bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
 check_psv "8.B" 0 bla -p bla_1.sql bla_2.sql bla_3.sql bla_m1.sql bla_m2.sql
-check_psv "8.C" 4 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
+check_psv "8.C" 9 bla bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
 check_psv "8.D" 0 bla -p bla_1.sql bla_2.sql bla_m1.sql bla_m2.sql bla_m3.sql
 
 # output overwrite
 rm -f tmp.out
 check_psv "8.E output option" 0 bla -o tmp.out bla_1.sql bla_2.sql
-check_psv "8.F output option" 3 bla -o tmp.out bla_1.sql bla_2.sql
+check_psv "8.F output option" 1 bla -o tmp.out bla_1.sql bla_2.sql
 rm -f tmp.out
 
 # help
