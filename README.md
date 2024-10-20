@@ -129,8 +129,13 @@ The only way is forward: there is no provision to go back to a previous
 state. However, note that schema steps are performed in a transaction, so
 that it can only fail one full step at a time.
 
-If a script contains a special `-- psv: some description` comment, the
-description is recorded and shown on command `status`.
+Each provided script must contain a special `-- psv: name +5432 description`
+header with:
+
+- `name` the application name, which must be consistent accross all scripts.
+- `+5432` the version number to apply, which will be checked for inconsistencies
+  such as repetition or missing numbers.
+- `description` an optional description of the resulting application status.
 
 ## Caveats
 
@@ -170,7 +175,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write a tutorial
 - write recipes
 
-### ? on ?
+### 0.4 on 2024-10-20
 
 - make psv comment header (`-- psv: foo +1 …`) mandatory,
   including many sanity checks about names, versions…
