@@ -167,7 +167,6 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 ### TODO
 
-- check provided strings, eg app name and others? escaping?
 - default phase? status? run? help?
 - check? `foo =n …`?
 - keep step execution history…
@@ -184,6 +183,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - add `reverse` command to allow going backwards, and tests
 - differentiate exit status depending on the error
 - add `--version` option
+- check app and hash option values
 
 ### 0.4 on 2024-10-20
 

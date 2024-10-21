@@ -374,6 +374,8 @@ EOF
 # trigger a repeated error under debug
 check_psv "8.K error under debug" 1 bla --debug bla_1.sql bla_2.sql bla_1.sql 2> /dev/null
 check_psv "8.L version" 0 bla --version
+check_psv "8.M app" 1 "<bad-name>"
+check_psv "8.N hash" 1 bla --hash "no-such-algorithm" bla_1.sql
 
 # apply with target version
 check_nop "9.0"

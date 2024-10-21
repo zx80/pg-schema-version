@@ -3,15 +3,9 @@ import sys
 import re
 import logging
 import argparse
-from .utils import log, bytes_hash, squote
+import hashlib
+from .utils import log, bytes_hash, squote, ScriptError
 from .psql import SCRIPT_HEADER, FILE_HEADER, FILE_FOOTER, SCRIPT_FOOTER
-
-class ScriptError(BaseException):
-    """PSV Script Errors."""
-
-    def __init__(self, status: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.status = status
 
 class Script:
     """Hold an SQL script."""
@@ -176,7 +170,7 @@ def psv():
     ap.add_argument("-T", "--trust-scripts", default=False, action="store_true",
                     help="blindly trust provided scripts")
     ap.add_argument("sql", nargs="*",
-                    help="sql data definition files")
+                    help="sql schema definition files")
     args = ap.parse_args()
 
     if args.debug:
@@ -188,6 +182,14 @@ def psv():
         from importlib.metadata import version as pkg_version
         print(f"{sys.argv[0]} version {pkg_version('pg-schema-version')}")
         return 0
+
+    if args.app is not None and not re.match(r"\w+$", args.app):
+        log.error(f"unexpected app name: {args.app}")
+        return 1
+
+    if args.hash not in hashlib.algorithms_available:
+        log.error(f"unexpected hash algorithm: {args.hash}")
+        return 1
 
     if isinstance(args.out, str):
         if os.path.exists(args.out):
