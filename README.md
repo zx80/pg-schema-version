@@ -170,7 +170,6 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - default phase? status? run? help?
 - check? `foo =n …`?
 - keep step execution history…
-- keep change current user
 - on partial, detect missing path before trying?
 - add synopsis and document all options
 - write a tutorial
@@ -184,7 +183,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - differentiate exit status depending on the error
 - add `--version` option
 - check app and hash option values
-- keep executed commands
+- keep executed commands and session users
 
 ### 0.4 on 2024-10-20
 

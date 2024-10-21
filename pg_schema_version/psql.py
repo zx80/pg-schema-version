@@ -234,6 +234,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
           signature TEXT DEFAULT NULL,
           filename TEXT DEFAULT NULL,
           description TEXT DEFAULT NULL,
+          username TEXT NOT NULL DEFAULT SESSION_USER,
           command TEXT NOT NULL DEFAULT 'bootstrap',
           created TIMESTAMP NOT NULL DEFAULT NOW(),
           -- TODO keep history: applied BOOLEAN NOT NULL DEFAULT TRUE,
