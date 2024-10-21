@@ -9,6 +9,7 @@ APP_VERSION = r"""
   SELECT MAX(version) AS psv_app_version
     FROM PsvAppStatus
     WHERE app = :'psv_app'
+      AND active
     \gset
   \if :{{?psv_app_version}}
     \echo # psv :psv_app version: :psv_app_version
@@ -65,6 +66,13 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
   \set psv_app {app}
 \endif
 \echo # psv for application :psv_app
+
+-- debugging output
+\if :{{?psv_debug}}
+  -- debug is on
+\else
+  \set psv_debug 0
+\endif
 
 -- command to execute
 \if :{{?psv}}
@@ -181,6 +189,11 @@ SELECT
 -- REMOVE
 --
 \if :psv_do_remove
+
+  \if :psv_debug
+    \echo # DEBUG - REMOVE
+  \endif
+
   \if :psv_dry
     \echo # psv will drop its infra if it exists
   \else
@@ -200,6 +213,11 @@ SELECT COUNT(*) = 0 AS psv_no_infra
   \gset
 
 \if :psv_do_init
+
+  \if :psv_debug
+    \echo # DEBUG - INIT
+  \endif
+
   \if :psv_no_infra
     \if :psv_dry
       -- output a precise message before quitting
@@ -226,6 +244,11 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 
         BEGIN;
 
+        SELECT
+          :'psv_table' || '_av' AS psv_idx_av,
+          :'psv_table' || '_s' AS psv_idx_s
+          \gset
+
         -- create psv application status table
         CREATE TABLE :"psv_schema".:"psv_table"(
           id SERIAL PRIMARY KEY,
@@ -237,12 +260,19 @@ SELECT COUNT(*) = 0 AS psv_no_infra
           username TEXT NOT NULL DEFAULT SESSION_USER,
           command TEXT NOT NULL DEFAULT 'bootstrap',
           created TIMESTAMP NOT NULL DEFAULT NOW(),
+          active BOOLEAN NOT NULL DEFAULT TRUE,
           -- TODO keep history: applied BOOLEAN NOT NULL DEFAULT TRUE,
-          UNIQUE(app, version),
-          UNIQUE(signature),
           CHECK (version = 0 AND signature IS NULL OR
                  version > 0 AND signature IS NOT NULL)
         );
+
+        CREATE UNIQUE INDEX :"psv_idx_av"
+          ON :"psv_schema".:"psv_table"(app, version)
+          WHERE active;
+
+        CREATE UNIQUE INDEX :"psv_idx_s"
+          ON :"psv_schema".:"psv_table"(signature)
+          WHERE active;
 
         -- register itself
         INSERT INTO :"psv_schema".:"psv_table" DEFAULT VALUES;
@@ -279,6 +309,10 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 
 \if :psv_do_status
 
+  \if :psv_debug
+    \echo # DEBUG - STATUS
+  \endif
+
   -- quit if infra is not available
   \if :psv_no_infra
     \if :psv_do_init
@@ -302,10 +336,12 @@ SELECT COUNT(*) = 0 AS psv_no_infra
   WITH app_version AS (
     SELECT app, MAX(version) AS version
       FROM :"psv_schema".:"psv_table"
+      WHERE active
       GROUP BY 1)
   SELECT app, version, description
     FROM app_version
     JOIN :"psv_schema".:"psv_table" USING (app, version)
+    WHERE active
     ORDER BY 1;
 
 \endif
@@ -327,6 +363,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
 SELECT MAX(version) <> 0 AS psv_not_v0
   FROM PsvAppStatus
   WHERE app = 'psv'
+    AND active
   \gset
 
 \if :psv_not_v0
@@ -338,6 +375,7 @@ SELECT MAX(version) <> 0 AS psv_not_v0
 SELECT COUNT(*) = 0 AS psv_app_ko
   FROM PsvAppStatus
   WHERE app = :'psv_app'
+    AND active
   \gset
 
 --
@@ -345,6 +383,11 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 --
 
 \if :psv_do_register
+
+  \if :psv_debug
+    \echo # DEBUG - REGISTER
+  \endif
+
   \if :psv_app_ko
     \if :psv_dry
       \echo # psv will register :psv_app
@@ -352,7 +395,8 @@ SELECT COUNT(*) = 0 AS psv_app_ko
       \echo # psv registering :psv_app
     \endif
     -- actually register, possibly on the copy for the dry run
-    INSERT INTO PsvAppStatus(app, command) VALUES (:'psv_app', :'psv_cmd');
+    INSERT INTO PsvAppStatus(app, command)
+      VALUES (:'psv_app', :'psv_cmd');
   \else
     \echo # psv skipping unneeded :psv_app registration
   \endif
@@ -376,6 +420,11 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 --
 
 \if :psv_do_unregister
+
+  \if :psv_debug
+    \echo # DEBUG - UNREGISTER
+  \endif
+
   \if :psv_app_ko
     \if :psv_dry
       \echo # psv will skip unregistering unregistered :psv_app
@@ -387,7 +436,14 @@ SELECT COUNT(*) = 0 AS psv_app_ko
       \echo # psv will unregister :psv_app
     \else
       \echo # psv unregistering :psv_app
-      DELETE FROM PsvAppStatus WHERE app = :'psv_app';
+      BEGIN;
+        UPDATE PsvAppStatus
+          SET active = FALSE
+          WHERE app = :'psv_app'
+            AND active;
+        INSERT INTO PsvAppStatus(app, command, active)
+          VALUES (:'psv_app', :'psv_cmd', FALSE);
+      COMMIT;
     \endif
   \endif
   -- nothing to do latter anyway
@@ -401,22 +457,29 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 -- check if nothing needs to be executed
 -- set display helpers in passing
 \if :psv_do_apply
+
   SELECT :psv_cmd_version <> -1 AND COUNT(*) >= 1 AS psv_no_step_needed
     FROM PsvAppStatus
     WHERE app = :'psv_app'
       AND version >= :psv_cmd_version
+      AND active
     \gset
   \set psv_operating applying
   \set psv_operate apply
+
 \elif :psv_do_reverse
+
   SELECT COUNT(*) = 0 AS psv_no_step_needed
     FROM PsvAppStatus
     WHERE app = :'psv_app'
       AND version > :psv_cmd_version
+      AND active
     \gset
   \set psv_operating reversing
   \set psv_operate reverse
+
 \elif :psv_do_catchup
+
   \set psv_no_step_needed 0
   \set psv_operating catching-up
   \set psv_operate catch-up
@@ -427,7 +490,9 @@ SELECT COUNT(*) = 0 AS psv_app_ko
     WHERE app = :'psv_app'
       AND :psv_cmd_version <> -1
       AND version > :psv_cmd_version
+      AND active
     \gset
+
   \if :psv_has_catchup_removals
     \if :psv_dry
       \echo # psv :psv_operate will downgrade :psv_catchup_removals steps
@@ -435,18 +500,26 @@ SELECT COUNT(*) = 0 AS psv_app_ko
       \echo # psv :psv_operate downgrading :psv_catchup_removals steps
     \endif
     -- do it anyway, possibly on the tmp copy
-    DELETE FROM PsvAppStatus
-      WHERE app = :'psv_app'
-        AND version > :psv_cmd_version;
+    BEGIN;
+      UPDATE PsvAppStatus
+        SET active = FALSE
+        WHERE app = :'psv_app'
+          AND version > :psv_cmd_version
+          AND active;
+      INSERT INTO PsvAppStatus(app, command, version, active)
+        VALUES (:'psv_app', :'psv_cmd', :psv_version, FALSE);
+    COMMIT;
   \endif
+
 \else
+
   \set psv_no_step_needed 1
   \set psv_operating doing
   \set psv_operate do
 \endif
 
 \if :psv_no_step_needed
-  \echo # psv nothing to :psv_operate for :psv_app target version :psv_cmd_version
+  \echo # psv nothing to :psv_operate for :psv_app target version :psv_cmd_version_display
   \quit
 \endif
 
@@ -461,6 +534,10 @@ SELECT COUNT(*) = 0 AS psv_app_ko
 
 -- consider each step in turn
 \if :psv_do_steps
+
+  \if :psv_debug
+    \echo # DEBUG - STEPS
+  \endif
 
   -- overall action summary
   \if :psv_dry
@@ -482,7 +559,13 @@ FILE_HEADER = r"""
   \set psv_forward {forward}
   \set psv_operation {operation}
 
-  -- first consider step direction
+  \if :psv_debug
+    \echo # DEBUG - STEP :psv_app :psv_operation :psv_version
+    SELECT app, version, command, active, signature
+      FROM PsvAppStatus WHERE app = :'psv_app' ORDER BY created DESC;
+  \endif
+
+  -- first consider step direction to know if we should consider this
   \if :psv_forward
     \if :psv_do_apply_catchup
       \set psv_keep_step 1
@@ -498,49 +581,78 @@ FILE_HEADER = r"""
     \endif
   \endif
 
+  \if :psv_debug
+    \echo # DEBUG :psv_app :psv_operation :psv_version considered: :psv_keep_step
+  \endif
+
   \if :psv_keep_step
 
     -- precondition : app schema prior operation was done
     \if :psv_do_apply_catchup
-      SELECT COUNT(*) = 1 AS psv_version_prior_ok
+      SELECT COUNT(*) = 1 AS psv_version_prec
         FROM PsvAppStatus
         WHERE app = :'psv_app'
           AND version = :psv_version - 1
+          AND active
         \gset
     \elif :psv_do_reverse
-      SELECT COUNT(*) = 0 AS psv_version_prior_ok
+      SELECT COUNT(*) = 0 AS psv_version_prec
         FROM PsvAppStatus
         WHERE app = :'psv_app'
           AND version = :psv_version + 1
+          AND active
         \gset
       -- else dead code
     \endif
 
-    \if :psv_version_prior_ok
+    \if :psv_debug
+      \echo # DEBUG :psv_app :psv_operation :psv_version prec: :psv_version_prec
+    \endif
+
+    \if :psv_version_prec
       \if :psv_do_apply_catchup
         -- this app schema upgrade not already applied
-        SELECT COUNT(*) = 0 AS psv_version_needed
+        SELECT COUNT(*) = 0 AS psv_version_not_done
           FROM PsvAppStatus
           WHERE app = :'psv_app'
             AND version = :psv_version
+            AND active
           \gset
+
+        \if :psv_version_not_done
+          -- we may have to do it
+          \set psv_do_sigcheck 0
+        \else
+          \set psv_do_sigcheck 1
+        \endif
+
       \elif :psv_do_reverse
+
+        \set psv_do_sigcheck 0
         -- this downgrade can be executed
-        SELECT COUNT(*) = 1 AS psv_version_needed
+        SELECT COUNT(*) = 1 AS psv_version_not_done
           FROM PsvAppStatus
           WHERE app = :'psv_app'
             AND version = :psv_version
+            AND active
           \gset
       -- else dead code
       \endif
     \else
       -- we have to skip this operation because the status is not right
-      \set psv_version_needed 0
+      \set psv_version_not_done 0
+      \set psv_do_sigcheck 0
     \endif
-    \unset psv_version_prior_ok
+    \unset psv_version_prec
+
+    \if :psv_debug
+      \echo # DEBUG :psv_app :psv_operation :psv_version not done: :psv_version_not_done
+    \endif
 
     -- and above/below target
-    \if :psv_version_needed
+    \if :psv_version_not_done
+
+      -- filter out based on target version
       \if :psv_do_apply_catchup
         SELECT :psv_cmd_version = -1 OR :psv_version <= :psv_cmd_version AS psv_version_needed
         \gset
@@ -549,32 +661,29 @@ FILE_HEADER = r"""
         \gset
       -- else dead code
       \endif
-      \if :psv_version_needed
-        -- we are still on, let us proceed
-      \else
-        \if :psv_dry
-          \echo # psv will skip :psv_operation :psv_app :psv_version (for :psv_cmd_version)
-        \else
-          \echo # psv skipping :psv_operation :psv_app :psv_version (for :psv_cmd_version)
-        \endif
-        \set psv_version_out_target 1
-      \endif
-    \endif
+      -- override signature checks
+      \set psv_do_sigcheck 0
 
-    \if :{{?psv_version_out_target}}
-      -- skip these checks if skipping step because of the version target
-      \set psv_version_inconsistent 0
-      \set psv_signature_used 0
-    \elif :psv_do_reverse
-      \set psv_version_inconsistent 0
-      \set psv_signature_used 0
     \else
+      -- psv version was done
+      \set psv_version_needed 0
+    \endif
+    \unset psv_version_not_done
+
+    \if :psv_do_sigcheck
+
+      -- check signature consistency in passing
+      \if :psv_debug
+        \echo # DEBUG checking signature consistency
+      \endif
+
       -- app schema upgrade already applied with another script
       SELECT COUNT(*) = 0 AS psv_version_inconsistent
         FROM PsvAppStatus
         WHERE app = :'psv_app'
           AND version = :psv_version
           AND signature = :'psv_signature'
+          AND active
         \gset
 
       -- this script was used somewhere already
@@ -582,7 +691,18 @@ FILE_HEADER = r"""
         FROM PsvAppStatus
         WHERE app = :'psv_app'
           AND signature = :'psv_signature'
+          AND active
         \gset
+
+    \else
+      -- no check, assume all is well
+      \set psv_version_inconsistent 0
+      \set psv_signature_used 0
+    \endif
+    \unset psv_do_sigcheck
+
+    \if :psv_debug
+      \echo # DEBUG :psv_app :psv_operate :psv_version for :psv_cmd_version_display: :psv_version_needed
     \endif
 
     \if :psv_version_needed
@@ -610,17 +730,25 @@ FILE_HEADER = r"""
         \endif
 
         \if :psv_dry
-          \echo # psv will :psv_operate :psv_app :psv_version
+          \echo # psv will execute :psv_operate :psv_app :psv_version
             -- record the execution on the copy anyway
-            \if :psv_do_apply_catchup
-              INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
-                VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
+            \if :psv_do_apply
+              INSERT INTO PsvAppStatus(app, version, signature, filename, description, command, active)
+                VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd', TRUE);
             \elif :psv_do_reverse
-              DELETE FROM PsvAppStatus WHERE app = :'psv_app' AND version = :'psv_version';
+              BEGIN;
+                UPDATE PsvAppStatus
+                  SET active = FALSE
+                  WHERE app = :'psv_app'
+                    AND version = :'psv_version'
+                    AND active;
+                INSERT INTO PsvAppStatus(app, version, signature, filename, description, command, active)
+                  VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd', FALSE);
+              COMMIT;
             -- else dead code
             \endif
         \else
-          \echo # psv :psv_operate :psv_app :psv_version
+          \echo # psv :psv_operating :psv_app :psv_version
 
     BEGIN;
 """
@@ -631,7 +759,13 @@ FILE_FOOTER = r"""
         INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
           VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
       \elif :psv_do_reverse
-        DELETE FROM PsvAppStatus WHERE app = :'psv_app' AND version = :'psv_version';
+        UPDATE PsvAppStatus
+          SET active = FALSE
+          WHERE app = :'psv_app'
+            AND version = :'psv_version'
+            AND active;
+        INSERT INTO PsvAppStatus(app, version, signature, filename, description, command, active)
+          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd', FALSE);
       -- else dead code
       \endif
 
@@ -653,29 +787,32 @@ FILE_FOOTER = r"""
           \else
             \echo # psv updating signature
           \endif
-          UPDATE PsvAppStatus
-            SET signature = :'psv_signature',
-                filename = :'filename'
-            WHERE app = :'pvs_app'
-              AND version = :'psv_version';
+          BEGIN;
+            UPDATE PsvAppStatus
+              SET active = FALSE
+              WHERE app = :'pvs_app'
+                AND version = :'psv_version'
+                AND active;
+            INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
+              VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
+          COMMIT;
         \else
           \warn # ERROR :psv_app :psv_version inconsistent signature
           \quit
         \endif
       \endif
       \if :psv_dry
-        \echo # psv will skip :psv_operation :psv_app :psv_version
+        \echo # psv will skip :psv_app :psv_operation :psv_version
       \else
-        \echo # psv skipping :psv_operation :psv_app :psv_version
+        \echo # psv skipping :psv_app :psv_operation :psv_version
       \endif
     \endif
   \else
     -- step skipped as it does not apply to operation
-    -- TODO clarify message
     \if :psv_dry
-      \echo # psv will skip :psv_operation :psv_app :psv_version
+      \echo # psv will ignore :psv_app :psv_operation :psv_version
     \else
-      \echo # psv skipping :psv_operation :psv_app :psv_version
+      \echo # psv ignoring :psv_app :psv_operation :psv_version
     \endif
   \endif
  

@@ -76,7 +76,7 @@ function check_cnt()
   local name="$1" number="$2" schema="${3:-public}" table="${4:-psv_app_status}"
   shift 4
   schema=$(dq "$schema") table=$(dq "$table")
-  check_que "count $name" "$number" "SELECT COUNT(DISTINCT app) FROM \"$schema\".\"$table\""
+  check_que "count $name" "$number" "SELECT COUNT(DISTINCT app) FROM \"$schema\".\"$table\" WHERE active"
 }
 
 # check current version of application
@@ -86,7 +86,7 @@ function check_ver()
   shift 5
   schema=$(dq "$schema") table=$(dq "$table")
   check_que "version $name" "$version" \
-    "SELECT MAX(version) FROM \"$schema\".\"$table\" WHERE app='$app'"
+    "SELECT MAX(version) FROM \"$schema\".\"$table\" WHERE app='$app' AND active"
 }
 
 function check_des()
@@ -95,7 +95,7 @@ function check_des()
   shift 4
   check_que "des $name" 1 \
     "SELECT COUNT(*) FROM public.psv_app_status
-     WHERE app='$app' AND version=$version AND description='$description'"
+     WHERE app='$app' AND version=$version AND description='$description' AND active"
 }
 
 # run psv only
@@ -117,13 +117,19 @@ function check_run()
 {
   local name="$1" expect="$2" app="$3" cmd="$4"
   shift 4
-
   [ "$cmd" ] && cmd="-v psv=$cmd"
 
-  $psv -a "$app" "$@" | $pg $cmd $db
-  result=$?
+  local tmp=./tmp_$$.sql
 
-  test_result "run $name $cmd" "$result" "$expect"
+  $psv -a "$app" "$@" > $tmp
+  psv_result=$?
+  test_result "run psv $name $cmd" $psv_result 0
+
+  $pg $cmd $db < $tmp
+  result=$?
+  test_result "run pg $name $cmd" "$result" "$expect"
+
+  rm -f $tmp
 }
 
 # empty test database

@@ -3,7 +3,7 @@ SHELL   = /bin/bash
 
 .PHONY: clean
 clean:
-	$(RM) .coverage bla.sql foo.sql acme.sql bad.sql
+	$(RM) .coverage bla.sql foo.sql acme.sql bad.sql tmp_*.sql
 
 .PHONY: check.commands
 check.commands:
