@@ -170,13 +170,13 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - default phase? status? run? help?
 - check? `foo =n …`?
 - keep step execution history…
-- keep actual command used
+- keep change current user
 - on partial, detect missing path before trying?
 - add synopsis and document all options
 - write a tutorial
 - write recipes
 - test setting `psv_app`
-- allow to show all operations done on an application
+- allow to show all operations done on an application: verbose mode?
 
 ### ? on ?
 
@@ -184,6 +184,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - differentiate exit status depending on the error
 - add `--version` option
 - check app and hash option values
+- keep executed commands
 
 ### 0.4 on 2024-10-20
 

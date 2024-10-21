@@ -234,6 +234,7 @@ SELECT COUNT(*) = 0 AS psv_no_infra
           signature TEXT DEFAULT NULL,
           filename TEXT DEFAULT NULL,
           description TEXT DEFAULT NULL,
+          command TEXT NOT NULL DEFAULT 'bootstrap',
           created TIMESTAMP NOT NULL DEFAULT NOW(),
           -- TODO keep history: applied BOOLEAN NOT NULL DEFAULT TRUE,
           UNIQUE(app, version),
@@ -350,7 +351,7 @@ SELECT COUNT(*) = 0 AS psv_app_ko
       \echo # psv registering :psv_app
     \endif
     -- actually register, possibly on the copy for the dry run
-    INSERT INTO PsvAppStatus(app) VALUES (:'psv_app');
+    INSERT INTO PsvAppStatus(app, command) VALUES (:'psv_app', :'psv_cmd');
   \else
     \echo # psv skipping unneeded :psv_app registration
   \endif
@@ -597,8 +598,8 @@ FILE_HEADER = r"""
           \quit
         \endif
         -- do it anyway, possibly on the fake copy ?
-        INSERT INTO PsvAppStatus(app, version, signature, filename, description)
-          VALUES (:'psv_app', :'psv_version', :'psv_signature', :'psv_filename', :'psv_description');
+        INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
+          VALUES (:'psv_app', :'psv_version', :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
       \else
         -- actual execution mode!
         \if :psv_signature_used
@@ -611,8 +612,8 @@ FILE_HEADER = r"""
           \echo # psv will :psv_operate :psv_app :psv_version
             -- record the execution on the copy anyway
             \if :psv_do_apply_catchup
-              INSERT INTO PsvAppStatus(app, version, signature, filename, description)
-                VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description');
+              INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
+                VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
             \elif :psv_do_reverse
               DELETE FROM PsvAppStatus WHERE app = :'psv_app' AND version = :'psv_version';
             -- else dead code
@@ -626,8 +627,8 @@ FILE_HEADER = r"""
 FILE_FOOTER = r"""
       \if :psv_do_apply_catchup
         -- upgrade application new version
-        INSERT INTO PsvAppStatus(app, version, signature, filename, description)
-          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description');
+        INSERT INTO PsvAppStatus(app, version, signature, filename, description, command)
+          VALUES (:'psv_app', :psv_version, :'psv_signature', :'psv_filename', :'psv_description', :'psv_cmd');
       \elif :psv_do_reverse
         DELETE FROM PsvAppStatus WHERE app = :'psv_app' AND version = :'psv_version';
       -- else dead code
