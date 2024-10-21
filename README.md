@@ -141,6 +141,11 @@ Beware that reversing may help you lose precious data, and that it is your
 responsability that the provided reverse scripts undo what was done by the
 forward scripts.
 
+Other options at the `psql` script level:
+
+- `-v psv_debug=1` to set debug mode.
+- `-v psv_app=foo` to change the application registration name.
+
 ## Caveats
 
 Only dream of running the generated SQL scripts if you have a working (i.e.
