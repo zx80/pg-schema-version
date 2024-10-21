@@ -69,7 +69,7 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 
 -- debugging output
 \if :{{?psv_debug}}
-  -- debug is on
+  -- debug is set
 \else
   \set psv_debug 0
 \endif
@@ -86,22 +86,35 @@ SELECT :SERVER_VERSION_NUM < 100000 AS psv_pg_ko \gset
 -- split command, version and moisture
 SELECT
   CASE
+    WHEN :'psv' ~ '^[a-z]+(:(\d+|latest))?(:(dry|wet))?$' THEN FALSE
+    WHEN :'psv' ~ '^(\d+|latest)(:(dry|wet))?$' THEN FALSE
+    WHEN :'psv' ~ '^(dry|wet)$' THEN FALSE
+    ELSE TRUE
+  END AS psv_cmd_ko,
+  CASE
+    WHEN :'psv' ~ '^(\d+|latest)(:(dry|wet))?$' THEN 'apply'
+    WHEN :'psv' ~ '^(dry|wet)$' THEN 'apply'
     WHEN :'psv' ~ ':' THEN SPLIT_PART(:'psv', ':', 1)
-    WHEN :'psv' IN ('dry', 'wet') THEN 'apply'
     ELSE :'psv'
   END AS psv_cmd,
   CASE
-    WHEN :'psv' ~ ':\d+(:\w+)?$' THEN SPLIT_PART(:'psv', ':', 2)::INT
-    WHEN :'psv' ~ ':latest(:\w+)?$' THEN -1
+    WHEN :'psv' ~ ':\d+:?' THEN SPLIT_PART(:'psv', ':', 2)::INT
+    WHEN :'psv' ~ '\d+:?' THEN SPLIT_PART(:'psv', ':', 1)::INT
+    WHEN :'psv' ~ 'latest' THEN -1
     ELSE -1 -- means latest
   END AS psv_cmd_version,
   CASE
-    WHEN :'psv' ~ ':\d+:' THEN SPLIT_PART(:'psv', ':', 3)
-    WHEN :'psv' ~ ':(dry|wet)$' THEN SPLIT_PART(:'psv', ':', -1)
-    WHEN :'psv' IN ('dry', 'wet') THEN :'psv'
+    WHEN :'psv' ~ ':dry$' THEN 'dry'
+    WHEN :'psv' ~ ':wet$' THEN 'wet'
+    WHEN :'psv' ~ '^(dry|wet)$' THEN :'psv'
     ELSE 'dry'
   END AS psv_mst
   \gset
+
+\if :psv_cmd_ko
+  \echo # ERROR unexpected psv setting: :psv
+  \quit
+\endif
 
 -- for display
 SELECT
@@ -155,6 +168,7 @@ SELECT
   \quit
 \endif
 \unset psv_bad_cmd
+
 \if :psv_bad_mst
   \warn # ERROR psv unexpected moisture :psv_mst, expecting: dry wet
   \quit

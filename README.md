@@ -173,7 +173,6 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 ### TODO
 
-- better check psv value…
 - default phase? status? run? help?
 - check? `foo =n …`?
 - on partial, detect missing path before trying?
@@ -192,6 +191,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - check app and hash option values
 - keep executed commands and session users
 - add debug mode
+- fix `psv` command parsing
 
 ### 0.4 on 2024-10-20
 
