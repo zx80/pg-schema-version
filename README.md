@@ -121,6 +121,7 @@ driven by `psql`-variable `psv` with value _command_:_version_:_moist_
   - `remove` drop psv infrastructure.
   - `help` show some help.
   - `status` show version status of applications.
+  - `history` show history of application changes.
   - `catchup` update application version status without actually executing steps
     (imply init and register).
 - versions are integers designating the target step, default is `latest`.
@@ -175,12 +176,12 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write a tutorial
 - write recipes
 - test setting `psv_app`
-- allow to show all operations done on an application: verbose mode?
 
 ### ? on ?
 
 - add `reverse` command to allow going backwards, and tests
-- keep step execution history.
+- add `history` command to show application history of changes
+- keep step execution history
 - differentiate exit status depending on the error
 - add `--version` option
 - check app and hash option values

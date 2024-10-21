@@ -40,7 +40,7 @@ SCRIPT_HEADER = r"""--
 -- Control the script behavior by setting psql-variable "psv",
 -- with the full format command:version:moisture.
 --
--- Available commands: init, register, apply (default), create, status, unregister, remove, help, catchup.
+-- Available commands: init, register, apply (default), create, status, history, unregister, remove, help, catchup.
 -- Available moistures: dry (default), wet.
 -- Version is the target version, default is latest.
 
@@ -116,7 +116,7 @@ SELECT
 
   -- check command validity
   :'psv_cmd' NOT IN ('init', 'register', 'apply',
-      'reverse', 'create', 'status', 'help',
+      'reverse', 'create', 'status', 'help', 'history',
       'unregister', 'remove', 'catchup')                   AS psv_bad_cmd,
 
   -- whether to initialize the infra if needed
@@ -127,6 +127,8 @@ SELECT
   :'psv_cmd' IN ('unregister')                             AS psv_do_unregister,
   -- whether to show all application status
   :'psv_cmd' IN ('status')                                 AS psv_do_status,
+  -- whether to show application history
+  :'psv_cmd' IN ('history')                                AS psv_do_history,
   -- whether to execute any step
   :'psv_cmd' IN ('create', 'apply', 'catchup', 'reverse')  AS psv_do_steps,
   -- whether to execute forward steps
@@ -261,7 +263,6 @@ SELECT COUNT(*) = 0 AS psv_no_infra
           command TEXT NOT NULL DEFAULT 'bootstrap',
           created TIMESTAMP NOT NULL DEFAULT NOW(),
           active BOOLEAN NOT NULL DEFAULT TRUE,
-          -- TODO keep history: applied BOOLEAN NOT NULL DEFAULT TRUE,
           CHECK (version = 0 AND signature IS NULL OR
                  version > 0 AND signature IS NOT NULL)
         );
@@ -343,6 +344,45 @@ SELECT COUNT(*) = 0 AS psv_no_infra
     JOIN :"psv_schema".:"psv_table" USING (app, version)
     WHERE active
     ORDER BY 1;
+  \quit
+
+\endif
+
+--
+-- HISTORY
+--
+
+\if :psv_do_history
+
+  \if :psv_debug
+    \echo # DEBUG - HISTORY
+  \endif
+
+  -- quit if infra is not available
+  \if :psv_no_infra
+    \if :psv_do_init
+      -- ok, will have been initialized
+      \if :psv_dry
+        \echo # psv will show all application status
+        -- nothing else to do
+        \quit
+      -- else proceed below
+      \endif
+    \else
+      -- no infra and not initialized
+      \warn # ERROR cannot show history without psv infra, consider commands init or create
+      \quit
+    \endif
+  \endif
+
+  -- show all app versions
+  \echo # psv application :psv_app history
+
+  SELECT app, version, command, active, created
+    FROM :"psv_schema".:"psv_table"
+    WHERE app = :'psv_app'
+    ORDER BY 5 DESC;
+  \quit
 
 \endif
 
