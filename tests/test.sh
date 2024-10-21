@@ -448,10 +448,9 @@ check_run "A.n" 0 bla "reverse:2:wet" $all_bla
 check_ver "A.o" bla 2
 check_run "A.p" 0 bla "reverse:0:wet" $all_bla
 check_ver "A.q" bla 0
-# NOTE unregister does a short exit without consumming all input
-check_run "A.r" 0 bla "unregister:wet"
+check_run "A.r" 0 bla "unregister:wet" $all_bla
 check_cnt "A.s" 1
-check_run "A.t" 0 bla "remove:wet"
+check_run "A.t" 0 bla "remove:wet" $all_bla
 check_nop "A.u"
 
 # cleanup test database
