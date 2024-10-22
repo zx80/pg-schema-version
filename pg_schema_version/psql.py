@@ -277,8 +277,9 @@ SELECT COUNT(*) = 0 AS psv_no_infra
           command TEXT NOT NULL DEFAULT 'bootstrap',
           created TIMESTAMP NOT NULL DEFAULT NOW(),
           active BOOLEAN NOT NULL DEFAULT TRUE,
-          CHECK (version = 0 AND signature IS NULL OR
-                 version > 0 AND signature IS NOT NULL)
+          CHECK (NOT active OR
+                 (version = 0 AND signature IS NULL OR
+                  version > 0 AND signature IS NOT NULL))
         );
 
         CREATE UNIQUE INDEX :"psv_idx_av"
@@ -561,7 +562,7 @@ SELECT COUNT(*) = 0 AS psv_app_ko
           AND version > :psv_cmd_version
           AND active;
       INSERT INTO PsvAppStatus(app, command, version, active)
-        VALUES (:'psv_app', :'psv_cmd', :psv_version, FALSE);
+        VALUES (:'psv_app', :'psv_cmd', :psv_cmd_version, FALSE);
     COMMIT;
   \endif
 

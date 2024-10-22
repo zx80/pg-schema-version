@@ -11,7 +11,7 @@ The application schema status is maintained in one table to detect reruns.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-283%20✓-success)
+![Tests](https://img.shields.io/badge/tests-295%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -192,6 +192,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - keep executed commands and session users
 - add debug mode
 - fix `psv` command parsing
+- add reverse catchup tests
 
 ### 0.4 on 2024-10-20
 
