@@ -101,10 +101,10 @@ Here is a typical use case for `pg-schema-version`:
    # …
    ```
 
-   | app  | version | description      |
-   |---   |     ---:|---               |
-   | acme |       3 | Acme Schema v2.0 |
-   | psv  |       0 | •                |
+   > | app  | version | description      |
+   > |---   |     ---:|---               |
+   > | acme |       3 | Acme Schema v2.0 |
+   > | psv  |       0 | •                |
 
 ## Features
 
