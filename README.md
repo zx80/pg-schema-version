@@ -175,6 +175,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - default phase? status? run? help?
 - check? `foo =n …`?
 - on partial, detect missing path before trying?
+  at least report of target is not reached!
 - add synopsis and document all options
 - write a tutorial
 - write recipes
