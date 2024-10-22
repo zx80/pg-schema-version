@@ -58,7 +58,7 @@ Here is a typical use case for `pg-schema-version`:
 3. Generate a `psql`-script from these for the target application:
 
    ```shell
-   pg-schema-version -a acme create_*.sql > acme.sql
+   pg-schema-version create_*.sql > acme.sql
    ```
 
 4. Execute the script against a database to bring its schema up to date.
@@ -180,6 +180,10 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write a tutorial
 - write recipes
 - test setting `psv_app`
+
+### ? on ?
+
+- improve documentation
 
 ### 0.5 on 2024-10-22
 
