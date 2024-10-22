@@ -181,7 +181,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write recipes
 - test setting `psv_app`
 
-### ? on ?
+### 0.5 on 2024-10-22
 
 - add `reverse` command to allow going backwards, and tests
 - add `history` command to show application history of changes
