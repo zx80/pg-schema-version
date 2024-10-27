@@ -32,10 +32,11 @@ check_run "A.n" 0 bla "reverse:2:wet" $all_bla
 check_ver "A.o" bla 2
 check_run "A.p" 0 bla "reverse:0:wet" $all_bla
 check_ver "A.q" bla 0
-check_run "A.r" 0 bla "unregister:wet" $all_bla
-check_cnt "A.s" 1
-check_run "A.t" 0 bla "remove:wet" $all_bla
-check_nop "A.u"
+check_run "A.r" 0 bla "history" $all_bla
+check_run "A.s" 0 bla "unregister:wet" $all_bla
+check_cnt "A.t" 1
+check_run "A.u" 0 bla "remove:wet" $all_bla
+check_nop "A.v"
 
 echo "passed: $OK/$TEST"
 exit $KO
