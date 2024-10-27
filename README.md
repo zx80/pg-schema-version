@@ -12,7 +12,7 @@ including checking patch signatures.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
-![Tests](https://img.shields.io/badge/tests-295%20✓-success)
+![Tests](https://img.shields.io/badge/tests-11%20✓-success)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-success)
 ![Python](https://img.shields.io/badge/python-3-informational)
 ![Version](https://img.shields.io/pypi/v/pg-schema-version)
@@ -184,6 +184,10 @@ They can be circumvented with option `--trust-scripts` or `-T`.
 - write a tutorial
 - write recipes
 - test setting `psv_app`
+
+### ? on ?
+
+- split and count actual test scenarii
 
 ### 0.6 on 2024-10-27
 
