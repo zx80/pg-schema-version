@@ -5,9 +5,10 @@ There already exists _many_ tools to manage database schema versions, such as
 Please consider them first to check whether they fit your needs before
 considering this one.
 In contrast to these tools, `pg-schema-version` emphasizes a _simple_ approach
-based on a single plain SQL scripts and no configuration, to provide limited but
-useful features with safety in mind.
-The application schema status is maintained in one table to detect reruns.
+based on a single plain `psql` SQL scripts and no configuration, to provide
+limited but useful features with safety in mind.
+The application schema status is maintained in one table to detect reruns,
+including checking patch signatures.
 Several application can share the same setup.
 
 ![Status](https://github.com/zx80/pg-schema-version/actions/workflows/test.yml/badge.svg?branch=main&style=flat)
@@ -18,7 +19,7 @@ Several application can share the same setup.
 ![License](https://img.shields.io/pypi/l/pg-schema-version?style=flat)
 ![Badges](https://img.shields.io/badge/badges-7-informational)
 
-## Usage
+## Example Usage
 
 Here is a typical use case for `pg-schema-version`:
 
@@ -62,9 +63,11 @@ Here is a typical use case for `pg-schema-version`:
    ```
 
 4. Execute the script against a database to bring its schema up to date.
+   By default the script runs in _dry_ mode and reports the proposed changes to
+   be applied by setting it in _wet_ mode.
 
    ```shell
-   # first time MUST use command create
+   # first time can use command create to init the setup and register the app.
    psql -v psv=create acme < acme.sql
    # psv for application acme
    # psv dry create for acme on acme, enable with -v psv=create:latest:wet
@@ -108,8 +111,11 @@ Here is a typical use case for `pg-schema-version`:
 
 ## Features
 
-The python script generates a reasonably safe re-entrant idempotent SQL script
-driven by `psql`-variable `psv` with value _command_:_version_:_moist_
+See `pg-schema-version --help` for a synopsis and explanations of all available
+options.
+
+The python command generates a reasonably safe re-entrant idempotent `psql`
+script driven by variable `psv` with value _command_:_version_:_moist_
 
 - available commands are (default is `apply`):
   - `init` just initialize an empty psv infrastructure.
@@ -129,13 +135,14 @@ driven by `psql`-variable `psv` with value _command_:_version_:_moist_
   - `dry` meaning that no changes are applied.
   - `wet` to trigger actual changes.
 
-Each provided script must contain a special `-- psv: name +5432 description`
+Each provided script **must** contain a special `-- psv: name +5432 description`
 header with:
 
-- `name` the application name, which must be consistent accross all scripts.
+- `name` the application name, which **must** be consistent accross all scripts.
 - `+5432` the version for apply (`+`) or reverse (`-`) a schema step, which
   will be checked for inconsistencies such as repeated or missing versions.
-- `description` an optional description of the resulting application status.
+- `description` an optional description of the resulting application status,
+  eg the corresponding application version.
 
 Beware that reversing may help you lose precious data, and that it is your
 responsability that the provided reverse scripts undo what was done by the
@@ -145,35 +152,32 @@ Other options at the `psql` script level:
 
 - `-v psv_debug=1` to set debug mode.
 - `-v psv_app=foo` to change the application registration name.
+  Probably a bad idea.
 
 ## Caveats
 
-Only dream of running the generated SQL scripts if you have a working (i.e.
-actually tested) backup of your data.
+Always:
+
+- have a working (i.e. actually tested) backup of your data.
+- run _dry_  and read the output carefully before running _wet_.
+- test your scripts with care before applying it to production data.
+
 There is no magic involved, you can still shot yourself in the foot, although
 with an effort.
-
-For safety, SQL schema creation scripts must **NOT**:
+For safety, SQL schema creation scripts must **not**:
 
 - include backslash commands which may interfere with the script owns.
 - include SQL transaction commands.
 
 Imperfect checks are performed to try to detect the above issues.
-They can be circumvented with option `--trust-scripts`.
-
-Always run _dry_  and read the output carefully before running _wet_.
-
-Always test your scripts with care before applying it to production data.
-
-Beware that `psql` can execute arbitrary shell commands in your name with
-`\!`.
+They can be circumvented with option `--trust-scripts` or `-T`.
 
 ## Versions
 
 ### TODO
 
 - default phase? status? run? help?
-- check? `foo =n …`?
+- check? `foo =n …`? so what?
 - on partial, detect missing path before trying?
   at least report of target is not reached!
 - add synopsis and document all options
@@ -181,7 +185,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 - write recipes
 - test setting `psv_app`
 
-### ? on ?
+### 0.6 on 2024-10-27
 
 - be stricter about backslash command detection
 - improve documentation
