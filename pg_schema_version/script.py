@@ -24,7 +24,7 @@ class Script:
         m = re.match(r"\s*--\s*psv\s*:\s*(\w+)\s*([-+])\s*(\d+)(\s+(.*?)\s*)?$", script, re.M)
         if not m:
             raise ScriptError(3, f"script {filename} unexpected psv header")
-        if re.search(r"^\s*\\", script, re.M):
+        if re.search(r"^\s*\\[a-zA-Z?!]", script, re.M):
             if trust:
                 log.warning(f"script {filename} seems to contain a backslash command")
             else:

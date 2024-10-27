@@ -183,6 +183,7 @@ Beware that `psql` can execute arbitrary shell commands in your name with
 
 ### ? on ?
 
+- be stricter about backslash command detection
 - improve documentation
 
 ### 0.5 on 2024-10-22
