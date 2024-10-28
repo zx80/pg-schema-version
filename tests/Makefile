@@ -1,7 +1,6 @@
 SHELL   = /bin/bash
 .ONESHELL:
 
-TEST_PG_OPTS =
 TEST_DB = pg_schema_version_test_database
 export TEST_DB
 
