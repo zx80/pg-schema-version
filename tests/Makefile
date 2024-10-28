@@ -29,7 +29,7 @@ $(TEST.ex): .test_db
 
 test_%.ex: test_%.sh
 	echo "# running $<"
-	$<
+	./$<
 
 .PHONY: check.test
 check.test: check.commands
