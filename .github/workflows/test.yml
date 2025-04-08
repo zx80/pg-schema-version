@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "pypy3.10"]
+        python:
+          version: ["3.10", "3.11", "3.12", "3.13", "3.14", "pypy3.10", "pypy3.11"]
 
     services:
       # Label used to access the service container
@@ -37,10 +38,10 @@ jobs:
       TEST_PG_OPTS: -h localhost -U psv
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python.version }}
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.python.version }}
         allow-prereleases: true
     - name: Install Packages
       run: sudo apt install postgresql-client
