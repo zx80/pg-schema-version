@@ -185,7 +185,7 @@ They can be circumvented with option `--trust-scripts` or `-T`.
 - write recipes
 - test setting `psv_app`
 
-### 1.0 on ?
+### 1.0 on 2025-04-08
 
 - split and count actual test scenarii
 - use SPDX licensing format
