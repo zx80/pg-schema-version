@@ -188,6 +188,7 @@ They can be circumvented with option `--trust-scripts` or `-T`.
 ### ? on ?
 
 - split and count actual test scenarii
+- use SPDX licensing format
 
 ### 0.6 on 2024-10-27
 
