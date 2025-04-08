@@ -17,9 +17,9 @@ classifiers = [
     "Topic :: Database",
     "Programming Language :: Python",
     "Programming Language :: SQL",
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
 ]
-version = "0.6"
+version = "1.0"
 # no external dependency
 dependencies = [ ]
 
