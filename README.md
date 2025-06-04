@@ -1,7 +1,8 @@
 # _Simple_ Postgres Schema Versioning
 
 There already exists _many_ tools to manage database schema versions, such as
-[sqitch](https://sqitch.org/), or [alembic](https://alembic.sqlalchemy.org/).
+[sqitch](https://sqitch.org/), [alembic](https://alembic.sqlalchemy.org/)
+or [pgroll](https://github.com/xataio/pgroll).
 Please consider them first to check whether they fit your needs before
 considering this one.
 In contrast to these tools, `pg-schema-version` emphasizes a _simple_ approach
