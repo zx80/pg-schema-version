@@ -185,6 +185,7 @@ They can be circumvented with option `--trust-scripts` or `-T`.
 - write a tutorial
 - write recipes
 - test setting `psv_app`
+- CI: follow python versions
 
 ### 1.0 on 2025-04-08
 
