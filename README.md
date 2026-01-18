@@ -22,7 +22,7 @@ Several application can share the same setup.
 
 ## Example Usage
 
-Here is a typical use case for `pg-schema-version`:
+Here is a demonstration of `pg-schema-version` usage:
 
 1. Install from PyPi, e.g. with `pip`:
 
@@ -170,8 +170,9 @@ For safety, SQL schema creation scripts must **not**:
 - include backslash commands which may interfere with the script owns.
 - include SQL transaction commands.
 
-Imperfect checks are performed to try to detect the above issues.
-They can be circumvented with option `--trust-scripts` or `-T`.
+Imperfect checks are performed to try to detect the above potential issues.
+They can be circumvented with option `--trust-scripts` or `-T`,
+which you are hereby advised _not_ to use.
 
 ## Versions
 
